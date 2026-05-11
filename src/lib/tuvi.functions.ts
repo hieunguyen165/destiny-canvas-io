@@ -168,35 +168,6 @@ function fallbackKetQua(data: LaSoInput): KetQuaLaSo {
 export const lapLaSo = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => laSoSchema.parse(data))
   .handler(async ({ data }) => {
-    const model = getModel();
-    const prompt = `Bạn là thầy tử vi lão luyện theo phương pháp Diễn Cẩm Tam Thế cổ truyền Việt Nam.
-Hãy luận giải lá số tử vi cho người sau đây. Văn phong cổ kính, súc tích, tiếng Việt thuần.
-
-THÔNG TIN:
-- Họ tên: ${data.hoTen}
-- Giới tính: ${data.gioiTinh === "nam" ? "Nam" : "Nữ"}
-- Ngày sinh: ${data.ngay}/${data.thang}/${data.nam} (${data.loaiLich === "duong" ? "Dương lịch" : "Âm lịch"})
-- Giờ sinh: Giờ ${GIO_LABEL[data.gio]}
-
-Chỉ trả về MỘT JSON object hợp lệ, không markdown, không code fence.
-JSON phải có đúng các khóa như mẫu sau, có thể viết lại toàn bộ phần luận giải cho sâu sắc hơn:
-${JSON.stringify(fallbackKetQua(data), null, 2)}
-
-Lưu ý:
-- "luanGiai12Cung" đúng 12 mục theo thứ tự: ${TEN_12_CUNG.join(", ")}.
-- "soCau" đúng 12 mục theo thứ tự: ${TEN_12_CAU.join(", ")}.
-- Mọi luận giải mang tính tham khảo dưới góc nhìn văn hoá, không khẳng định tuyệt đối.`;
-
-    try {
-      const { text } = await generateText({ model, prompt });
-      const parsed = extractJson(text);
-      const result = ketQuaSchema.safeParse(parsed);
-      if (result.success) return { ok: true as const, data: result.data };
-      console.warn("Không đọc được JSON lá số từ mô hình, dùng bản luận giải dự phòng", result.error.flatten());
-    } catch (error) {
-      console.warn("Lập lá số bằng mô hình gặp lỗi, dùng bản luận giải dự phòng", error);
-    }
-
     return { ok: true as const, data: fallbackKetQua(data) };
   });
 
