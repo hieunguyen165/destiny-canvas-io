@@ -37,6 +37,17 @@ function AdminPage() {
     );
   }
 
+  if (adminLoading) {
+    return (
+      <div className="mx-auto max-w-lg px-4 py-12">
+        <Card className="glass-card p-8 text-center shadow-elegant">
+          <Shield className="mx-auto h-10 w-10 animate-pulse text-primary" />
+          <p className="mt-3 text-sm text-muted-foreground">Đang xác thực quyền quản trị…</p>
+        </Card>
+      </div>
+    );
+  }
+
   if (!isAdmin) {
     return (
       <div className="mx-auto max-w-lg px-4 py-12">
