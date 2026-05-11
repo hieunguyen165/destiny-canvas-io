@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { lapLaSo, luanSau, type KetQuaLaSo } from "@/lib/tuvi.functions";
+import { useGeminiKey } from "@/lib/admin";
 import { LaSoChart } from "@/components/la-so-chart";
 import { Prose } from "@/components/prose";
 import { ChevronDown, Sparkles } from "lucide-react";
