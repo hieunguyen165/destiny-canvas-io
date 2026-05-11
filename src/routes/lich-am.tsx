@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Prose } from "@/components/prose";
 import { doiLich } from "@/lib/tuvi.functions";
+import { useGeminiKey } from "@/lib/admin";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/lich-am")({
