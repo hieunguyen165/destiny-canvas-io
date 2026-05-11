@@ -3,7 +3,7 @@ import { generateObject, generateText } from "ai";
 import { z } from "zod";
 import { createLovableAiGatewayProvider } from "./ai-gateway";
 
-const MODEL = "google/gemini-2.5-flash";
+const MODEL = "google/gemini-2.5-pro";
 
 function getModel() {
   const key = process.env.LOVABLE_API_KEY;
