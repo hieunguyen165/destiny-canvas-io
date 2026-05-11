@@ -16,7 +16,7 @@ export const Route = createFileRoute("/admin")({
 });
 
 function AdminPage() {
-  const isAdmin = useIsAdmin();
+  const { loading: adminLoading, isAdmin } = useIsAdmin();
   const [email, setEmail] = useState<string | null>(null);
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setEmail(data.user?.email ?? null));
