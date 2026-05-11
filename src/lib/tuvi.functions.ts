@@ -4,7 +4,8 @@ import { z } from "zod";
 import { createLovableAiGatewayProvider } from "./ai-gateway";
 
 const MODEL = "google/gemini-2.5-pro";
-const GEMINI_DIRECT_MODEL = "gemini-2.5-pro";
+// Dùng flash cho free-tier (RPM/RPD cao hơn pro rất nhiều)
+const GEMINI_DIRECT_MODELS = ["gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-2.0-flash"];
 
 function getModel() {
   const key = process.env.LOVABLE_API_KEY;
@@ -14,20 +15,31 @@ function getModel() {
 
 async function runText(prompt: string, geminiKey?: string): Promise<string> {
   if (geminiKey && geminiKey.trim()) {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_DIRECT_MODEL}:generateContent?key=${encodeURIComponent(geminiKey.trim())}`;
-    const res = await fetch(url, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
-    });
-    if (!res.ok) {
+    const key = geminiKey.trim();
+    let lastErr = "";
+    for (const model of GEMINI_DIRECT_MODELS) {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(key)}`;
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { maxOutputTokens: 8192, temperature: 0.7 },
+        }),
+      });
+      if (res.ok) {
+        const j = (await res.json()) as { candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }> };
+        const text = j.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("") ?? "";
+        if (text) return text;
+        lastErr = "Gemini không trả về nội dung";
+        continue;
+      }
       const body = await res.text();
-      throw new Error(`Gemini API ${res.status}: ${body.slice(0, 300)}`);
+      lastErr = `Gemini ${model} ${res.status}: ${body.slice(0, 200)}`;
+      // 429/503: thử model kế tiếp; lỗi khác (401/400) thì dừng
+      if (res.status !== 429 && res.status !== 503) break;
     }
-    const j = (await res.json()) as { candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }> };
-    const text = j.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("") ?? "";
-    if (!text) throw new Error("Gemini không trả về nội dung");
-    return text;
+    throw new Error(`API key của bạn bị giới hạn quota. ${lastErr}. Hãy thử lại sau hoặc nâng cấp gói Gemini.`);
   }
   const { text } = await generateText({ model: getModel(), prompt });
   return text;
