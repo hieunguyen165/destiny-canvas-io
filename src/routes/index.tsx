@@ -10,8 +10,10 @@ import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { lapLaSo, type KetQuaLaSo } from "@/lib/tuvi.functions";
+import { lapLaSo, luanSau, type KetQuaLaSo } from "@/lib/tuvi.functions";
 import { LaSoChart } from "@/components/la-so-chart";
+import { Prose } from "@/components/prose";
+import { ChevronDown, Sparkles } from "lucide-react";
 import heroBg from "@/assets/hero-bg.jpg";
 import vase from "@/assets/peach-vase.png";
 
@@ -250,11 +252,13 @@ function SectionBox({
   title,
   subtitle,
   children,
+  deep,
 }: {
   index: number;
   title: string;
   subtitle?: string;
   children: React.ReactNode;
+  deep?: { muc: string; tomTat: string; kq: KetQuaLaSo };
 }) {
   return (
     <Card className="glass-card border-border/60 p-5 shadow-soft sm:p-6">
@@ -266,7 +270,63 @@ function SectionBox({
         </div>
       </div>
       <div className="text-sm leading-relaxed">{children}</div>
+      {deep && <DeepDive muc={deep.muc} tomTat={deep.tomTat} kq={deep.kq} />}
     </Card>
+  );
+}
+
+function DeepDive({ muc, tomTat, kq }: { muc: string; tomTat: string; kq: KetQuaLaSo }) {
+  const luanSauFn = useServerFn(luanSau);
+  const [open, setOpen] = useState(false);
+  const m = useMutation({
+    mutationFn: () =>
+      luanSauFn({
+        data: {
+          muc,
+          tomTat,
+          thongTin: {
+            hoTen: kq.thongTinCoBan.hoTen,
+            gioiTinh: kq.thongTinCoBan.gioiTinh,
+            canChiNam: kq.thongTinCoBan.canChiNam,
+            banMenh: kq.thongTinCoBan.banMenh,
+            cungMenh: kq.thongTinCoBan.cungMenh,
+            cungThan: kq.thongTinCoBan.cungThan,
+            gioSinh: kq.thongTinCoBan.gioSinh,
+          },
+        },
+      }),
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Không truy được tàng thư, mời thử lại."),
+  });
+
+  const handleClick = () => {
+    if (!open && !m.data && !m.isPending) m.mutate();
+    setOpen((v) => !v);
+  };
+
+  return (
+    <div className="mt-4 border-t border-dashed border-border/70 pt-3">
+      <button
+        type="button"
+        onClick={handleClick}
+        disabled={m.isPending}
+        className="group inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/5 px-3 py-1.5 text-xs font-semibold text-primary transition-all hover:bg-primary/10 disabled:opacity-60"
+      >
+        {m.isPending ? (
+          <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Đang luận sâu…</>
+        ) : (
+          <>
+            <Sparkles className="h-3.5 w-3.5" />
+            {open ? "Thu gọn" : m.data ? "Xem lại luận sâu" : "Xem thêm — Luận sâu"}
+            <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", open && "rotate-180")} />
+          </>
+        )}
+      </button>
+      {open && m.data?.content && (
+        <div className="mt-3 rounded-lg border border-primary/20 bg-gradient-to-br from-primary/5 via-background/40 to-accent/10 p-4">
+          <Prose content={m.data.content} />
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -297,7 +357,15 @@ function KetQuaBoxes({ kq }: { kq: KetQuaLaSo }) {
         </dl>
       </SectionBox>
 
-      <SectionBox index={3} title="Luận Giải 12 Cung">
+      <SectionBox
+        index={3}
+        title="Luận Giải 12 Cung"
+        deep={{
+          muc: "Luận giải 12 cung trong lá số",
+          tomTat: kq.luanGiai12Cung.map((c) => `${c.ten} (${c.saoChinh}): ${c.luanGiai}`).join(" | "),
+          kq,
+        }}
+      >
         <div className="grid gap-3 sm:grid-cols-2">
           {kq.luanGiai12Cung.map((c, i) => (
             <div key={i} className="rounded-md border border-border/60 bg-background/40 p-3">
@@ -311,11 +379,23 @@ function KetQuaBoxes({ kq }: { kq: KetQuaLaSo }) {
         </div>
       </SectionBox>
 
-      <SectionBox index={4} title="Đại Hạn — Tiểu Hạn (Hiện Tại)">
+      <SectionBox
+        index={4}
+        title="Đại Hạn — Tiểu Hạn (Hiện Tại)"
+        deep={{ muc: "Đại hạn và tiểu hạn hiện tại", tomTat: kq.daiTieuHan, kq }}
+      >
         <p className="whitespace-pre-line">{kq.daiTieuHan}</p>
       </SectionBox>
 
-      <SectionBox index={5} title="Toàn Bộ Đại Hạn">
+      <SectionBox
+        index={5}
+        title="Toàn Bộ Đại Hạn"
+        deep={{
+          muc: "Toàn bộ chu kỳ đại hạn theo từng giai đoạn 10 năm",
+          tomTat: kq.toanBoDaiHan.map((d) => `${d.giaiDoan} - ${d.cung}: ${d.luanGiai}`).join(" | "),
+          kq,
+        }}
+      >
         <div className="overflow-hidden rounded-md border border-border/60">
           <table className="w-full text-sm">
             <thead className="bg-accent/40 font-display">
@@ -338,7 +418,15 @@ function KetQuaBoxes({ kq }: { kq: KetQuaLaSo }) {
         </div>
       </SectionBox>
 
-      <SectionBox index={6} title="Tiểu Hạn Theo Năm">
+      <SectionBox
+        index={6}
+        title="Tiểu Hạn Theo Năm"
+        deep={{
+          muc: "Tiểu hạn theo từng năm sắp tới",
+          tomTat: kq.tieuHanTheoNam.map((n) => `Năm ${n.nam} (${n.canChi}): ${n.luanGiai}`).join(" | "),
+          kq,
+        }}
+      >
         <div className="space-y-2">
           {kq.tieuHanTheoNam.map((n, i) => (
             <div key={i} className="rounded-md border border-border/60 bg-background/40 p-3">
@@ -352,15 +440,32 @@ function KetQuaBoxes({ kq }: { kq: KetQuaLaSo }) {
         </div>
       </SectionBox>
 
-      <SectionBox index={7} title="Diễn Cầm Tam Thế" subtitle="Tiền vận — Trung vận — Hậu vận">
+      <SectionBox
+        index={7}
+        title="Diễn Cẩm Tam Thế"
+        subtitle="Tiền vận — Trung vận — Hậu vận"
+        deep={{ muc: "Diễn Cẩm Tam Thế: tiền vận, trung vận, hậu vận", tomTat: kq.dienCamTamThe, kq }}
+      >
         <p className="whitespace-pre-line">{kq.dienCamTamThe}</p>
       </SectionBox>
 
-      <SectionBox index={8} title="Coi Số Sanh Tổng Luận">
+      <SectionBox
+        index={8}
+        title="Coi Số Sanh Tổng Luận"
+        deep={{ muc: "Tổng luận số sanh — tổng quan vận mệnh cả đời", tomTat: kq.soSanhTongLuan, kq }}
+      >
         <p className="whitespace-pre-line">{kq.soSanhTongLuan}</p>
       </SectionBox>
 
-      <SectionBox index={9} title="Số Cầu (12 Cầu)">
+      <SectionBox
+        index={9}
+        title="Số Cầu (12 Cầu)"
+        deep={{
+          muc: "Số Cầu — luận 12 cầu (Tài, Quan, Ấn, Phúc, Thọ, Lộc, Mã, Khốc, Hư, Hình, Kiếp, Sát)",
+          tomTat: kq.soCau.map((s) => `${s.ten} [${s.danhGia}]: ${s.luanGiai}`).join(" | "),
+          kq,
+        }}
+      >
         <div className="grid gap-2 sm:grid-cols-2">
           {kq.soCau.map((s, i) => {
             const tone =
@@ -384,23 +489,43 @@ function KetQuaBoxes({ kq }: { kq: KetQuaLaSo }) {
         </div>
       </SectionBox>
 
-      <SectionBox index={10} title="Coi Làm Ăn — Nghề Nghiệp Gì Thuận Số">
+      <SectionBox
+        index={10}
+        title="Coi Làm Ăn — Nghề Nghiệp Gì Thuận Số"
+        deep={{ muc: "Nghề nghiệp và việc làm ăn thuận số", tomTat: kq.ngheNghiepThuanSo, kq }}
+      >
         <p className="whitespace-pre-line">{kq.ngheNghiepThuanSo}</p>
       </SectionBox>
 
-      <SectionBox index={11} title="Thiên Can Hiệp Tháng Sanh — Tìm Nghề Nghiệp">
+      <SectionBox
+        index={11}
+        title="Thiên Can Hiệp Tháng Sanh — Tìm Nghề Nghiệp"
+        deep={{ muc: "Thiên can hiệp tháng sanh để tìm nghề nghiệp phù hợp", tomTat: kq.thienCanHiepThangSanh, kq }}
+      >
         <p className="whitespace-pre-line">{kq.thienCanHiepThangSanh}</p>
       </SectionBox>
 
-      <SectionBox index={12} title="Ngày Sang Hèn">
+      <SectionBox
+        index={12}
+        title="Ngày Sang Hèn"
+        deep={{ muc: "Ngày sang hèn — luận khí chất ngày sinh", tomTat: kq.ngaySangHen, kq }}
+      >
         <p className="whitespace-pre-line">{kq.ngaySangHen}</p>
       </SectionBox>
 
-      <SectionBox index={13} title="Coi Số Có Nhà Hay Không">
+      <SectionBox
+        index={13}
+        title="Coi Số Có Nhà Hay Không"
+        deep={{ muc: "Số có nhà cửa, điền trạch hay không", tomTat: kq.soCoNha, kq }}
+      >
         <p className="whitespace-pre-line">{kq.soCoNha}</p>
       </SectionBox>
 
-      <SectionBox index={14} title="Số Kiếp Vợ Chồng">
+      <SectionBox
+        index={14}
+        title="Số Kiếp Vợ Chồng"
+        deep={{ muc: "Số kiếp vợ chồng — duyên phận hôn nhân", tomTat: kq.soKiepVoChong, kq }}
+      >
         <p className="whitespace-pre-line">{kq.soKiepVoChong}</p>
       </SectionBox>
 

@@ -171,6 +171,53 @@ export const lapLaSo = createServerFn({ method: "POST" })
     return { ok: true as const, data: fallbackKetQua(data) };
   });
 
+// Luận giải chuyên sâu cho từng mục — gọi AI khi user bấm "Xem thêm"
+const luanSauSchema = z.object({
+  muc: z.string().min(1).max(120),
+  tomTat: z.string().min(1).max(2000),
+  thongTin: z.object({
+    hoTen: z.string(),
+    gioiTinh: z.string(),
+    canChiNam: z.string(),
+    banMenh: z.string(),
+    cungMenh: z.string(),
+    cungThan: z.string(),
+    gioSinh: z.string(),
+  }),
+});
+
+export const luanSau = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) => luanSauSchema.parse(d))
+  .handler(async ({ data }) => {
+    const model = getModel();
+    const t = data.thongTin;
+    const { text } = await generateText({
+      model,
+      prompt: `Bạn là thầy tử vi cổ truyền Việt Nam, văn phong trang trọng, sâu sắc, sử dụng thuật ngữ tử vi (cung, sao, can chi, ngũ hành).
+
+THÔNG TIN ĐƯƠNG SỐ:
+- Họ tên: ${t.hoTen} (${t.gioiTinh})
+- Năm sinh can chi: ${t.canChiNam}
+- Bản mệnh: ${t.banMenh}
+- Cung Mệnh: ${t.cungMenh}; Cung Thân: ${t.cungThan}
+- Giờ sinh: ${t.gioSinh}
+
+MỤC CẦN LUẬN SÂU: "${data.muc}"
+
+Tóm lược ban đầu (để mở rộng, không lặp y nguyên):
+"""${data.tomTat}"""
+
+Hãy viết LUẬN GIẢI CHUYÊN SÂU bằng tiếng Việt, MARKDOWN, gồm các phần:
+## 🔮 Căn Nguyên (gốc rễ vận số ở mục này, tham chiếu can chi - ngũ hành - cung sao, 3-4 câu)
+## 📜 Diễn Giải Chi Tiết (4-6 câu phân tích cặn kẽ ý nghĩa, biểu hiện cụ thể trong đời sống)
+## ⚖️ Thuận & Nghịch (2 câu thuận, 2 câu nghịch nên tránh)
+## 🌿 Lời Khuyên (3-4 gạch đầu dòng cụ thể, hành động được)
+
+Văn phong tử vi cổ truyền, súc tích nhưng sâu, không lan man.`,
+    });
+    return { ok: true as const, content: text };
+  });
+
 // Các function khác giữ nguyên
 const vanMenhSchema = z.object({
   conGiap: z.string().min(1),
