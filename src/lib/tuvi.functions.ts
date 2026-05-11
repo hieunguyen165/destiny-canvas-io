@@ -4,7 +4,8 @@ import { z } from "zod";
 import { createLovableAiGatewayProvider } from "./ai-gateway";
 
 const MODEL = "google/gemini-2.5-pro";
-const GEMINI_DIRECT_MODEL = "gemini-2.5-pro";
+// Dùng flash cho free-tier (RPM/RPD cao hơn pro rất nhiều)
+const GEMINI_DIRECT_MODELS = ["gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-2.0-flash"];
 
 function getModel() {
   const key = process.env.LOVABLE_API_KEY;
