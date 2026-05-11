@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
 import { Prose } from "@/components/prose";
 import { luanCungHoangDao } from "@/lib/tuvi.functions";
+import { useGeminiKey } from "@/lib/admin";
 
 export const Route = createFileRoute("/hoang-dao")({
   head: () => ({
