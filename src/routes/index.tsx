@@ -14,7 +14,7 @@ import { lapLaSo, luanSau, type KetQuaLaSo } from "@/lib/tuvi.functions";
 import { useGeminiKey } from "@/lib/admin";
 import { LaSoChart } from "@/components/la-so-chart";
 import { Prose } from "@/components/prose";
-import { ChevronDown, Sparkles } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import heroBg from "@/assets/hero-bg.jpg";
 import vase from "@/assets/peach-vase.png";
 
