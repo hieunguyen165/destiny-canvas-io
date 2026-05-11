@@ -9,8 +9,44 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as VanMenhRouteImport } from './routes/van-menh'
+import { Route as SignupRouteImport } from './routes/signup'
+import { Route as NgayTotRouteImport } from './routes/ngay-tot'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as LichAmRouteImport } from './routes/lich-am'
+import { Route as HoangDaoRouteImport } from './routes/hoang-dao'
 import { Route as IndexRouteImport } from './routes/index'
 
+const VanMenhRoute = VanMenhRouteImport.update({
+  id: '/van-menh',
+  path: '/van-menh',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NgayTotRoute = NgayTotRouteImport.update({
+  id: '/ngay-tot',
+  path: '/ngay-tot',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LichAmRoute = LichAmRouteImport.update({
+  id: '/lich-am',
+  path: '/lich-am',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HoangDaoRoute = HoangDaoRouteImport.update({
+  id: '/hoang-dao',
+  path: '/hoang-dao',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -19,28 +55,116 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/hoang-dao': typeof HoangDaoRoute
+  '/lich-am': typeof LichAmRoute
+  '/login': typeof LoginRoute
+  '/ngay-tot': typeof NgayTotRoute
+  '/signup': typeof SignupRoute
+  '/van-menh': typeof VanMenhRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/hoang-dao': typeof HoangDaoRoute
+  '/lich-am': typeof LichAmRoute
+  '/login': typeof LoginRoute
+  '/ngay-tot': typeof NgayTotRoute
+  '/signup': typeof SignupRoute
+  '/van-menh': typeof VanMenhRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/hoang-dao': typeof HoangDaoRoute
+  '/lich-am': typeof LichAmRoute
+  '/login': typeof LoginRoute
+  '/ngay-tot': typeof NgayTotRoute
+  '/signup': typeof SignupRoute
+  '/van-menh': typeof VanMenhRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/hoang-dao'
+    | '/lich-am'
+    | '/login'
+    | '/ngay-tot'
+    | '/signup'
+    | '/van-menh'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/hoang-dao'
+    | '/lich-am'
+    | '/login'
+    | '/ngay-tot'
+    | '/signup'
+    | '/van-menh'
+  id:
+    | '__root__'
+    | '/'
+    | '/hoang-dao'
+    | '/lich-am'
+    | '/login'
+    | '/ngay-tot'
+    | '/signup'
+    | '/van-menh'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  HoangDaoRoute: typeof HoangDaoRoute
+  LichAmRoute: typeof LichAmRoute
+  LoginRoute: typeof LoginRoute
+  NgayTotRoute: typeof NgayTotRoute
+  SignupRoute: typeof SignupRoute
+  VanMenhRoute: typeof VanMenhRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/van-menh': {
+      id: '/van-menh'
+      path: '/van-menh'
+      fullPath: '/van-menh'
+      preLoaderRoute: typeof VanMenhRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ngay-tot': {
+      id: '/ngay-tot'
+      path: '/ngay-tot'
+      fullPath: '/ngay-tot'
+      preLoaderRoute: typeof NgayTotRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lich-am': {
+      id: '/lich-am'
+      path: '/lich-am'
+      fullPath: '/lich-am'
+      preLoaderRoute: typeof LichAmRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hoang-dao': {
+      id: '/hoang-dao'
+      path: '/hoang-dao'
+      fullPath: '/hoang-dao'
+      preLoaderRoute: typeof HoangDaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -53,7 +177,23 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  HoangDaoRoute: HoangDaoRoute,
+  LichAmRoute: LichAmRoute,
+  LoginRoute: LoginRoute,
+  NgayTotRoute: NgayTotRoute,
+  SignupRoute: SignupRoute,
+  VanMenhRoute: VanMenhRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
