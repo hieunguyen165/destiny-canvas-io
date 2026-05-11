@@ -19,6 +19,7 @@ export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const path = useRouterState({ select: (s) => s.location.pathname });
+  const isAdmin = useIsAdmin();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setEmail(data.session?.user.email ?? null));
