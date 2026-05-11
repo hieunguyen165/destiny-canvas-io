@@ -278,6 +278,7 @@ function SectionBox({
 
 function DeepDive({ muc, tomTat, kq }: { muc: string; tomTat: string; kq: KetQuaLaSo }) {
   const luanSauFn = useServerFn(luanSau);
+  const geminiKey = useGeminiKey();
   const [open, setOpen] = useState(false);
   const m = useMutation({
     mutationFn: () =>
@@ -294,6 +295,7 @@ function DeepDive({ muc, tomTat, kq }: { muc: string; tomTat: string; kq: KetQua
             cungThan: kq.thongTinCoBan.cungThan,
             gioSinh: kq.thongTinCoBan.gioSinh,
           },
+          geminiKey,
         },
       }),
     onError: (e) => toast.error(e instanceof Error ? e.message : "Không truy được tàng thư, mời thử lại."),
