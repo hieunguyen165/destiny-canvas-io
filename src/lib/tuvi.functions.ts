@@ -265,12 +265,11 @@ const cungHDSchema = z.object({ cung: z.string().min(1), geminiKey: optKey });
 export const luanCungHoangDao = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => cungHDSchema.parse(d))
   .handler(async ({ data }) => {
-    const model = getModel();
-    const { text } = await generateText({
-      model,
-      prompt: `Tử vi tuần này cho cung hoàng đạo ${data.cung} (phương Tây), bằng tiếng Việt.
+    const text = await runText(
+      `Tử vi tuần này cho cung hoàng đạo ${data.cung} (phương Tây), bằng tiếng Việt.
 Markdown gồm: ## ✨ Tổng Quan Tuần, ## 💼 Sự Nghiệp, ## 💰 Tài Chính, ## ❤️ Tình Yêu, ## 🌿 Sức Khoẻ, ## 🍀 Lời Khuyên. Mỗi phần 2-3 câu.`,
-    });
+      data.geminiKey,
+    );
     return { ok: true as const, content: text };
   });
 
@@ -278,19 +277,19 @@ const ngayTotSchema = z.object({
   loaiViec: z.string().min(1),
   thang: z.number().int().min(1).max(12),
   nam: z.number().int().min(2024).max(2100),
+  geminiKey: optKey,
 });
 
 export const ngayTot = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => ngayTotSchema.parse(d))
   .handler(async ({ data }) => {
-    const model = getModel();
-    const { text } = await generateText({
-      model,
-      prompt: `Liệt kê 5-8 ngày tốt trong tháng ${data.thang}/${data.nam} (dương lịch) phù hợp cho việc "${data.loaiViec}" theo lịch can chi Việt Nam.
+    const text = await runText(
+      `Liệt kê 5-8 ngày tốt trong tháng ${data.thang}/${data.nam} (dương lịch) phù hợp cho việc "${data.loaiViec}" theo lịch can chi Việt Nam.
 Trả về MARKDOWN dạng bảng:
 | Ngày dương | Ngày âm | Can Chi | Giờ tốt | Lý do |
 Sau bảng thêm phần ## ⚠️ Ngày Cần Tránh (1-2 ngày xấu) và ## 🌿 Lời Khuyên (2 câu).`,
-    });
+      data.geminiKey,
+    );
     return { ok: true as const, content: text };
   });
 
@@ -299,16 +298,15 @@ const lichAmSchema = z.object({
   thang: z.number().int().min(1).max(12),
   nam: z.number().int().min(1900).max(2100),
   chieu: z.enum(["d2a", "a2d"]),
+  geminiKey: optKey,
 });
 
 export const doiLich = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => lichAmSchema.parse(d))
   .handler(async ({ data }) => {
-    const model = getModel();
     const huong = data.chieu === "d2a" ? "Dương lịch sang Âm lịch" : "Âm lịch sang Dương lịch";
-    const { text } = await generateText({
-      model,
-      prompt: `Hãy đổi ngày ${data.ngay}/${data.thang}/${data.nam} từ ${huong} một cách chính xác.
+    const text = await runText(
+      `Hãy đổi ngày ${data.ngay}/${data.thang}/${data.nam} từ ${huong} một cách chính xác.
 Trả về MARKDOWN ngắn gọn:
 - **Dương lịch:** ...
 - **Âm lịch:** ...
@@ -317,6 +315,7 @@ Trả về MARKDOWN ngắn gọn:
 - **Can Chi năm:** ...
 - **Tiết khí:** ...
 - **Đánh giá:** Hoàng đạo / Hắc đạo, có nên làm việc lớn không (1 câu).`,
-    });
+      data.geminiKey,
+    );
     return { ok: true as const, content: text };
   });
