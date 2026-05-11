@@ -94,13 +94,25 @@ function SettingsPanel() {
         Khi có khoá, mọi luận giải sẽ gọi thẳng Gemini bằng khoá riêng để tiết kiệm hạn mức hệ thống.
       </p>
       <div className="mt-4 flex gap-2">
-        <Button onClick={() => { setGeminiKey(val); toast.success(val ? "Đã lưu khoá" : "Đã xoá khoá"); }} className="gradient-primary text-primary-foreground">
+        <Button
+          onClick={async () => {
+            try { await setGeminiKey(val); toast.success(val ? "Đã lưu khoá dùng chung" : "Đã xoá khoá"); }
+            catch (e) { toast.error(e instanceof Error ? e.message : "Lỗi lưu khoá"); }
+          }}
+          className="gradient-primary text-primary-foreground"
+        >
           <Save className="mr-1.5 h-4 w-4" />Lưu khoá
         </Button>
-        <Button variant="outline" onClick={() => { setGeminiKey(""); setVal(""); toast.success("Đã xoá khoá"); }}>Xoá</Button>
+        <Button
+          variant="outline"
+          onClick={async () => {
+            try { await setGeminiKey(""); setVal(""); toast.success("Đã xoá khoá"); }
+            catch (e) { toast.error(e instanceof Error ? e.message : "Lỗi xoá khoá"); }
+          }}
+        >Xoá</Button>
       </div>
       <div className="mt-4 rounded-md border border-dashed border-border/70 bg-muted/40 p-3 text-xs text-muted-foreground">
-        Trạng thái: {current ? <span className="font-semibold text-primary">Đang dùng khoá riêng (••••{current.slice(-4)})</span> : "Đang dùng hạn mức hệ thống"}
+        Trạng thái: {current ? <span className="font-semibold text-primary">Đang dùng khoá chung (••••{current.slice(-4)}) — áp dụng cho tất cả thành viên</span> : "Đang dùng hạn mức hệ thống"}
       </div>
     </Card>
   );
