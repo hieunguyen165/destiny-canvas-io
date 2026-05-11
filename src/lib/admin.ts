@@ -1,26 +1,11 @@
 import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
-const ADMIN_FLAG = "dctt_admin";
 const GEMINI_KEY = "dctt_gemini_key";
 const EVT = "dctt-admin-change";
 
-export const ADMIN_USER = "Admin";
-export const ADMIN_PASS = "Admin123";
-
 function emit() {
   if (typeof window !== "undefined") window.dispatchEvent(new Event(EVT));
-}
-
-export function loginAdmin(user: string, pass: string) {
-  if (user !== ADMIN_USER || pass !== ADMIN_PASS) return false;
-  localStorage.setItem(ADMIN_FLAG, "1");
-  emit();
-  return true;
-}
-
-export function logoutAdmin() {
-  localStorage.removeItem(ADMIN_FLAG);
-  emit();
 }
 
 export function setGeminiKey(key: string) {
@@ -34,10 +19,10 @@ export function getGeminiKey(): string | undefined {
   return localStorage.getItem(GEMINI_KEY) || undefined;
 }
 
-export function useIsAdmin() {
-  const [v, setV] = useState(false);
+export function useGeminiKey() {
+  const [v, setV] = useState<string | undefined>(undefined);
   useEffect(() => {
-    const sync = () => setV(localStorage.getItem(ADMIN_FLAG) === "1");
+    const sync = () => setV(localStorage.getItem(GEMINI_KEY) || undefined);
     sync();
     window.addEventListener(EVT, sync);
     window.addEventListener("storage", sync);
@@ -49,16 +34,30 @@ export function useIsAdmin() {
   return v;
 }
 
-export function useGeminiKey() {
-  const [v, setV] = useState<string | undefined>(undefined);
+/** Returns true when current Supabase user has admin role. */
+export function useIsAdmin() {
+  const [v, setV] = useState(false);
   useEffect(() => {
-    const sync = () => setV(localStorage.getItem(GEMINI_KEY) || undefined);
-    sync();
-    window.addEventListener(EVT, sync);
-    window.addEventListener("storage", sync);
+    let cancel = false;
+    const check = async () => {
+      const { data: u } = await supabase.auth.getUser();
+      if (!u.user) {
+        if (!cancel) setV(false);
+        return;
+      }
+      const { data } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", u.user.id)
+        .eq("role", "admin")
+        .maybeSingle();
+      if (!cancel) setV(!!data);
+    };
+    check();
+    const { data: sub } = supabase.auth.onAuthStateChange(() => check());
     return () => {
-      window.removeEventListener(EVT, sync);
-      window.removeEventListener("storage", sync);
+      cancel = true;
+      sub.subscription.unsubscribe();
     };
   }, []);
   return v;
