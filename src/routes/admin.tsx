@@ -85,13 +85,13 @@ function SettingsPanel() {
   return (
     <Card className="glass-card p-6 shadow-elegant">
       <Label className="mb-1.5 flex items-center gap-1.5 text-sm">
-        <KeyRound className="h-3.5 w-3.5" /> Khoá API Gemini
+        <KeyRound className="h-3.5 w-3.5" /> Khoá API Gemini (dùng chung cho mọi user)
       </Label>
       <Input type="password" placeholder="AIza..." value={val} onChange={(e) => setVal(e.target.value)} autoComplete="off" />
       <p className="mt-1.5 text-xs text-muted-foreground">
         Lấy tại{" "}
         <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="text-primary hover:underline">Google AI Studio</a>.
-        Khi có khoá, mọi luận giải sẽ gọi thẳng Gemini bằng khoá riêng để tiết kiệm hạn mức hệ thống.
+        Khi admin lưu khoá ở đây, <strong>toàn bộ thành viên</strong> (kể cả khách) sẽ tự động dùng khoá này khi luận giải, giúp tiết kiệm hạn mức hệ thống.
       </p>
       <div className="mt-4 flex gap-2">
         <Button
