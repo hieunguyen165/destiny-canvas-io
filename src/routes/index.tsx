@@ -252,11 +252,13 @@ function SectionBox({
   title,
   subtitle,
   children,
+  deep,
 }: {
   index: number;
   title: string;
   subtitle?: string;
   children: React.ReactNode;
+  deep?: { muc: string; tomTat: string; kq: KetQuaLaSo };
 }) {
   return (
     <Card className="glass-card border-border/60 p-5 shadow-soft sm:p-6">
@@ -268,7 +270,63 @@ function SectionBox({
         </div>
       </div>
       <div className="text-sm leading-relaxed">{children}</div>
+      {deep && <DeepDive muc={deep.muc} tomTat={deep.tomTat} kq={deep.kq} />}
     </Card>
+  );
+}
+
+function DeepDive({ muc, tomTat, kq }: { muc: string; tomTat: string; kq: KetQuaLaSo }) {
+  const luanSauFn = useServerFn(luanSau);
+  const [open, setOpen] = useState(false);
+  const m = useMutation({
+    mutationFn: () =>
+      luanSauFn({
+        data: {
+          muc,
+          tomTat,
+          thongTin: {
+            hoTen: kq.thongTinCoBan.hoTen,
+            gioiTinh: kq.thongTinCoBan.gioiTinh,
+            canChiNam: kq.thongTinCoBan.canChiNam,
+            banMenh: kq.thongTinCoBan.banMenh,
+            cungMenh: kq.thongTinCoBan.cungMenh,
+            cungThan: kq.thongTinCoBan.cungThan,
+            gioSinh: kq.thongTinCoBan.gioSinh,
+          },
+        },
+      }),
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Không truy được tàng thư, mời thử lại."),
+  });
+
+  const handleClick = () => {
+    if (!open && !m.data && !m.isPending) m.mutate();
+    setOpen((v) => !v);
+  };
+
+  return (
+    <div className="mt-4 border-t border-dashed border-border/70 pt-3">
+      <button
+        type="button"
+        onClick={handleClick}
+        disabled={m.isPending}
+        className="group inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/5 px-3 py-1.5 text-xs font-semibold text-primary transition-all hover:bg-primary/10 disabled:opacity-60"
+      >
+        {m.isPending ? (
+          <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Đang luận sâu…</>
+        ) : (
+          <>
+            <Sparkles className="h-3.5 w-3.5" />
+            {open ? "Thu gọn" : m.data ? "Xem lại luận sâu" : "Xem thêm — Luận sâu"}
+            <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", open && "rotate-180")} />
+          </>
+        )}
+      </button>
+      {open && m.data?.content && (
+        <div className="mt-3 rounded-lg border border-primary/20 bg-gradient-to-br from-primary/5 via-background/40 to-accent/10 p-4">
+          <Prose content={m.data.content} />
+        </div>
+      )}
+    </div>
   );
 }
 
