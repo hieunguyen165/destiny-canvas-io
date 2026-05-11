@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { generateText } from "ai";
+import { generateObject, generateText } from "ai";
 import { z } from "zod";
 import { createLovableAiGatewayProvider } from "./ai-gateway";
 
@@ -18,7 +18,7 @@ const laSoSchema = z.object({
   ngay: z.number().int().min(1).max(31),
   thang: z.number().int().min(1).max(12),
   nam: z.number().int().min(1900).max(2100),
-  gio: z.number().int().min(0).max(11), // index giờ Tý..Hợi
+  gio: z.number().int().min(0).max(11),
 });
 
 const GIO_LABEL = [
@@ -27,12 +27,70 @@ const GIO_LABEL = [
   "Thân (15-17h)", "Dậu (17-19h)", "Tuất (19-21h)", "Hợi (21-23h)",
 ];
 
+// 14 phần kết quả
+const cungSchema = z.object({
+  ten: z.string(),       // Mệnh, Phụ Mẫu, Phúc Đức, ...
+  saoChinh: z.string(),  // các sao chính trong cung
+  luanGiai: z.string(),  // 1-3 câu
+});
+
+const ketQuaSchema = z.object({
+  thongTinCoBan: z.object({
+    hoTen: z.string(),
+    gioiTinh: z.string(),
+    ngayDuong: z.string(),
+    ngayAm: z.string(),
+    gioSinh: z.string(),
+    banMenh: z.string(),       // VD: "Thiên Hà Thuỷ"
+    canChiNam: z.string(),
+    canChiThang: z.string(),
+    canChiNgay: z.string(),
+    canChiGio: z.string(),
+    cungMenh: z.string(),
+    cungThan: z.string(),
+    saoChuMenh: z.string(),
+    saoChuThan: z.string(),
+  }),
+  luanGiai12Cung: z.array(cungSchema).length(12),
+  daiTieuHan: z.string(),                    // tổng quan đại - tiểu hạn hiện tại
+  toanBoDaiHan: z.array(z.object({
+    giaiDoan: z.string(),                    // VD: "10-19 tuổi"
+    cung: z.string(),
+    luanGiai: z.string(),
+  })).min(6).max(10),
+  tieuHanTheoNam: z.array(z.object({
+    nam: z.string(),
+    canChi: z.string(),
+    luanGiai: z.string(),
+  })).min(3).max(6),
+  dienCamTamThe: z.string(),                 // tiền - trung - hậu vận theo Diễn Cầm
+  soSanhTongLuan: z.string(),
+  soCau: z.array(z.object({
+    ten: z.string(),                          // Tài, Quan, Ấn, Phúc, Thọ, Lộc, Mã, Khốc, Hư, Hình, Kiếp, Sát
+    danhGia: z.string(),                      // Kiết / Hung / Bình
+    luanGiai: z.string(),
+  })).length(12),
+  ngheNghiepThuanSo: z.string(),
+  thienCanHiepThangSanh: z.string(),
+  ngaySangHen: z.string(),
+  soCoNha: z.string(),
+  soKiepVoChong: z.string(),
+});
+
+export type KetQuaLaSo = z.infer<typeof ketQuaSchema>;
+
+const TEN_12_CUNG = [
+  "Mệnh", "Phụ Mẫu", "Phúc Đức", "Điền Trạch",
+  "Quan Lộc", "Nô Bộc", "Thiên Di", "Tật Ách",
+  "Tài Bạch", "Tử Tức", "Phu Thê", "Huynh Đệ",
+];
+
 export const lapLaSo = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => laSoSchema.parse(data))
   .handler(async ({ data }) => {
     const model = getModel();
-    const prompt = `Bạn là một thầy tử vi lão luyện theo phương pháp Diễn Cầm Tam Thế cổ truyền của Việt Nam.
-Hãy luận giải lá số tử vi cho người sau đây bằng văn phong cổ kính, trang trọng nhưng dễ hiểu, có cấu trúc.
+    const prompt = `Bạn là thầy tử vi lão luyện theo phương pháp Diễn Cẩm Tam Thế cổ truyền Việt Nam.
+Hãy luận giải lá số tử vi cho người sau đây. Văn phong cổ kính, súc tích, tiếng Việt thuần.
 
 THÔNG TIN:
 - Họ tên: ${data.hoTen}
@@ -40,40 +98,22 @@ THÔNG TIN:
 - Ngày sinh: ${data.ngay}/${data.thang}/${data.nam} (${data.loaiLich === "duong" ? "Dương lịch" : "Âm lịch"})
 - Giờ sinh: Giờ ${GIO_LABEL[data.gio]}
 
-YÊU CẦU TRẢ LỜI THEO ĐÚNG ĐỊNH DẠNG MARKDOWN SAU (không thêm phần giới thiệu):
+TRẢ VỀ JSON theo schema. Lưu ý:
+- "luanGiai12Cung" PHẢI đúng 12 mục theo thứ tự: ${TEN_12_CUNG.join(", ")}.
+- "soCau" PHẢI đúng 12 mục theo thứ tự: Tài, Quan, Ấn, Phúc, Thọ, Lộc, Mã, Khốc, Hư, Hình, Kiếp, Sát.
+- "toanBoDaiHan" chia 6-10 giai đoạn 10 năm.
+- "tieuHanTheoNam" gồm 3-5 năm gần nhất (kể cả năm nay 2026).
+- Mọi luận giải mang tính tham khảo dưới góc nhìn văn hoá, không khẳng định tuyệt đối.`;
 
-## ⚜️ Thông Tin Bản Mệnh
-- **Bản mệnh (ngũ hành nạp âm):** ...
-- **Can Chi năm sinh:** ...
-- **Cung mệnh:** ...
-- **Sao chủ mệnh:** ...
-
-## 📜 Tổng Luận Số Sanh
-(3-4 câu khái quát về vận mệnh tổng thể, tính cách, phúc đức)
-
-## 🎯 Số Cầu (12 Cầu)
-Liệt kê ngắn gọn 12 cầu (Tài, Quan, Ấn, Phúc, Thọ, Lộc, Mã, Khốc, Hư, Hình, Kiếp, Sát) - mỗi cầu 1 dòng, đánh giá kiết/hung.
-
-## 🌸 Vận Trình Tam Thế
-- **Tiền vận (0-30 tuổi):** ...
-- **Trung vận (30-50 tuổi):** ...
-- **Hậu vận (50+):** ...
-
-## 💼 Sự Nghiệp & Tài Lộc
-(2-3 câu)
-
-## ❤️ Tình Duyên Gia Đạo
-(2-3 câu)
-
-## 🌿 Lời Khuyên
-(2 câu lời khuyên thiết thực)
-
-Lưu ý: Luận giải mang tính tham khảo dưới góc nhìn văn hoá, không đoán định tuyệt đối.`;
-
-    const { text } = await generateText({ model, prompt });
-    return { ok: true as const, content: text };
+    const { object } = await generateObject({
+      model,
+      schema: ketQuaSchema,
+      prompt,
+    });
+    return { ok: true as const, data: object };
   });
 
+// Các function khác giữ nguyên
 const vanMenhSchema = z.object({
   conGiap: z.string().min(1),
   nam: z.number().int().min(2020).max(2100),
@@ -91,10 +131,10 @@ Trả về MARKDOWN với các phần: ## 🌟 Tổng Quan, ## 💰 Tài Lộc, 
     return { ok: true as const, content: text };
   });
 
-const cungSchema = z.object({ cung: z.string().min(1) });
+const cungHDSchema = z.object({ cung: z.string().min(1) });
 
 export const luanCungHoangDao = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) => cungSchema.parse(d))
+  .inputValidator((d: unknown) => cungHDSchema.parse(d))
   .handler(async ({ data }) => {
     const model = getModel();
     const { text } = await generateText({
