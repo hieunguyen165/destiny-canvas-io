@@ -31,13 +31,14 @@ const VIEC = [
 
 function NgayTotPage() {
   const fn = useServerFn(ngayTot);
+  const geminiKey = useGeminiKey();
   const today = new Date();
   const [loaiViec, setLoaiViec] = useState(VIEC[0]);
   const [thang, setThang] = useState(String(today.getMonth() + 1));
   const [nam, setNam] = useState(String(today.getFullYear()));
 
   const m = useMutation({
-    mutationFn: (v: { loaiViec: string; thang: number; nam: number }) => fn({ data: v }),
+    mutationFn: (v: { loaiViec: string; thang: number; nam: number }) => fn({ data: { ...v, geminiKey } }),
     onError: (e) => toast.error(e instanceof Error ? e.message : "Có lỗi xảy ra"),
   });
 
