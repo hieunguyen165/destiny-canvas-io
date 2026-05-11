@@ -318,8 +318,7 @@ function DeepDive({ muc, tomTat, kq }: { muc: string; tomTat: string; kq: KetQua
           <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Đang luận sâu…</>
         ) : (
           <>
-            <Sparkles className="h-3.5 w-3.5" />
-            {open ? "Thu gọn" : m.data ? "Xem lại luận sâu" : "Xem thêm — Luận sâu"}
+            {open ? "Thu gọn" : m.data ? "Xem lại Luận Chi Tiết" : "Luận Chi Tiết"}
             <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", open && "rotate-180")} />
           </>
         )}

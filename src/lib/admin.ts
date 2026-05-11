@@ -4,15 +4,15 @@ const ADMIN_FLAG = "dctt_admin";
 const GEMINI_KEY = "dctt_gemini_key";
 const EVT = "dctt-admin-change";
 
-export const ADMIN_USER = "Admin";
-export const ADMIN_PASS = "Admin123";
+export const ADMIN_USER = "Xuanhieufi@gmail.com";
+export const ADMIN_PASS = "Admin123@";
 
 function emit() {
   if (typeof window !== "undefined") window.dispatchEvent(new Event(EVT));
 }
 
 export function loginAdmin(user: string, pass: string) {
-  if (user !== ADMIN_USER || pass !== ADMIN_PASS) return false;
+  if (user.trim().toLowerCase() !== ADMIN_USER.toLowerCase() || pass !== ADMIN_PASS) return false;
   localStorage.setItem(ADMIN_FLAG, "1");
   emit();
   return true;
