@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { Compass, LogIn, UserPlus, LogOut, Menu, X } from "lucide-react";
+import { Compass, LogIn, UserPlus, LogOut, Menu, X, Shield } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { useIsAdmin } from "@/lib/admin";
 import { cn } from "@/lib/utils";
 
 const NAV = [
