@@ -59,7 +59,15 @@ export function SiteHeader() {
         </nav>
 
         <div className="hidden items-center gap-2 md:flex">
-          {email ? (
+          <Button
+            variant={isAdmin ? "default" : "ghost"}
+            size="sm"
+            asChild
+            className={isAdmin ? "gradient-primary text-primary-foreground" : ""}
+            title="Khu quản trị"
+          >
+            <Link to="/admin"><Shield className="mr-1.5 h-4 w-4" />Admin</Link>
+          </Button>
             <>
               <span className="hidden text-sm text-muted-foreground lg:inline">{email}</span>
               <Button variant="outline" size="sm" onClick={onLogout}>
