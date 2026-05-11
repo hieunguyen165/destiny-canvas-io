@@ -3,7 +3,7 @@ import { generateObject, generateText } from "ai";
 import { z } from "zod";
 import { createLovableAiGatewayProvider } from "./ai-gateway";
 
-const MODEL = "google/gemini-2.5-flash";
+const MODEL = "google/gemini-2.5-pro";
 
 function getModel() {
   const key = process.env.LOVABLE_API_KEY;
@@ -51,25 +51,25 @@ const ketQuaSchema = z.object({
     saoChuMenh: z.string(),
     saoChuThan: z.string(),
   }),
-  luanGiai12Cung: z.array(cungSchema).length(12),
-  daiTieuHan: z.string(),                    // tổng quan đại - tiểu hạn hiện tại
+  luanGiai12Cung: z.array(cungSchema),
+  daiTieuHan: z.string(),
   toanBoDaiHan: z.array(z.object({
-    giaiDoan: z.string(),                    // VD: "10-19 tuổi"
+    giaiDoan: z.string(),
     cung: z.string(),
     luanGiai: z.string(),
-  })).min(6).max(10),
+  })),
   tieuHanTheoNam: z.array(z.object({
     nam: z.string(),
     canChi: z.string(),
     luanGiai: z.string(),
-  })).min(3).max(6),
-  dienCamTamThe: z.string(),                 // tiền - trung - hậu vận theo Diễn Cầm
+  })),
+  dienCamTamThe: z.string(),
   soSanhTongLuan: z.string(),
   soCau: z.array(z.object({
-    ten: z.string(),                          // Tài, Quan, Ấn, Phúc, Thọ, Lộc, Mã, Khốc, Hư, Hình, Kiếp, Sát
-    danhGia: z.string(),                      // Kiết / Hung / Bình
+    ten: z.string(),
+    danhGia: z.string(),
     luanGiai: z.string(),
-  })).length(12),
+  })),
   ngheNghiepThuanSo: z.string(),
   thienCanHiepThangSanh: z.string(),
   ngaySangHen: z.string(),
