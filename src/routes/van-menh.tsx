@@ -29,12 +29,13 @@ const ICONS: Record<string, string> = { Tý: "🐭", Sửu: "🐮", Dần: "🐯
 
 function VanMenhPage() {
   const fn = useServerFn(vanMenh);
+  const geminiKey = useGeminiKey();
   const [tuoi, setTuoi] = useState("Tý");
   const year = new Date().getFullYear();
   const [nam, setNam] = useState(String(year));
 
   const m = useMutation({
-    mutationFn: (v: { conGiap: string; nam: number }) => fn({ data: v }),
+    mutationFn: (v: { conGiap: string; nam: number }) => fn({ data: { ...v, geminiKey } }),
     onError: (e) => toast.error(e instanceof Error ? e.message : "Có lỗi xảy ra"),
   });
 
