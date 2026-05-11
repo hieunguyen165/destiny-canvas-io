@@ -68,6 +68,7 @@ export function SiteHeader() {
           >
             <Link to="/admin"><Shield className="mr-1.5 h-4 w-4" />Admin</Link>
           </Button>
+          {email ? (
             <>
               <span className="hidden text-sm text-muted-foreground lg:inline">{email}</span>
               <Button variant="outline" size="sm" onClick={onLogout}>
