@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { Sparkles, User, Calendar, Sun, Moon, Lock, CheckCircle2, Loader2 } from "lucide-react";
+import { User, Calendar, Sun, Moon, Lock, CheckCircle2, Loader2, Compass } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,8 +10,8 @@ import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { Prose } from "@/components/prose";
-import { lapLaSo } from "@/lib/tuvi.functions";
+import { lapLaSo, type KetQuaLaSo } from "@/lib/tuvi.functions";
+import { LaSoChart } from "@/components/la-so-chart";
 import heroBg from "@/assets/hero-bg.jpg";
 import vase from "@/assets/peach-vase.png";
 
@@ -35,19 +35,25 @@ const GIO = [
 ];
 
 const FREE_FEATURES = [
-  { icon: "👶", label: "Coi con nít mới sanh mạng gì" },
+  { icon: "🗺️", label: "Bản đồ Lá Số 12 Cung" },
   { icon: "📜", label: "Coi Số Sanh Tổng Luận" },
   { icon: "🎯", label: "Số Cầu (12 Cầu)" },
+  { icon: "🌸", label: "Đại Hạn — Tiểu Hạn" },
 ];
 const LOCKED = [
   "Coi làm ăn nghề nghiệp gì thuận số",
-  "Ngày Sang Hèn",
-  "Coi ruộng đất có không",
   "Thiên Can Hiệp Tháng Sanh — Tìm Nghề",
-  "Coi học giỏi, dở",
-  "Coi thi cử lấy khoa đặng không",
-  "Coi hào anh em kiết hung",
-  "Coi tuổi con trai có phá sản vợ không",
+  "Ngày Sang Hèn",
+  "Coi Số Có Nhà Hay Không",
+  "Số Kiếp Vợ Chồng",
+];
+
+const LOAD_PHRASES = [
+  "Đang kết nối hệ thống thần cơ…",
+  "Hé mở càn khôn, truy xuất tàng thư…",
+  "Từ cõi mịch mờ, vạn tượng dần hiện rõ…",
+  "Sao trời chuyển động, can chi giao hội…",
+  "Tam Thế ứng nghiệm, lá số đã hiện hình…",
 ];
 
 function TuViPage() {
@@ -77,13 +83,11 @@ function TuViPage() {
 
   return (
     <div className="relative">
-      {/* Hero */}
       <div
         className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[680px] bg-cover bg-center opacity-60"
         style={{ backgroundImage: `url(${heroBg})` }}
       />
       <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[680px] bg-gradient-to-b from-transparent via-background/40 to-background" />
-
       <img
         src={vase}
         alt=""
@@ -94,18 +98,16 @@ function TuViPage() {
 
       <section className="mx-auto max-w-3xl px-4 pt-12 pb-6 text-center sm:px-6 sm:pt-20">
         <div className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium text-primary">
-          <Sparkles className="h-3 w-3" /> Tinh hoa tử vi cổ truyền
+          <Compass className="h-3 w-3" /> Tinh hoa tử vi cổ truyền
         </div>
         <h1 className="mt-5 font-display text-4xl font-semibold tracking-tight sm:text-5xl">
           Lập <span className="text-gradient">Lá Số Tử Vi</span>
         </h1>
         <p className="mx-auto mt-3 max-w-xl text-sm text-muted-foreground sm:text-base">
-          Nhập thông tin của bạn để hệ thống luận giải 28 mục vận mệnh
-          theo phương pháp Diễn Cẩm Tam Thế.
+          Nhập thông tin của bạn để hệ thống luận giải <strong>14 mục vận mệnh</strong> theo phương pháp Diễn Cẩm Tam Thế.
         </p>
       </section>
 
-      {/* Form */}
       <section className="mx-auto max-w-3xl px-4 sm:px-6">
         <Card className="glass-card border-border/60 shadow-elegant p-6 sm:p-8">
           <form onSubmit={onSubmit} className="space-y-6">
@@ -155,71 +157,265 @@ function TuViPage() {
               {m.isPending ? (
                 <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Đang luận giải…</>
               ) : (
-                <><Sparkles className="mr-2 h-4 w-4" /> Lập Lá Số Tử Vi</>
+                <><Compass className="mr-2 h-4 w-4" /> Lập Lá Số Tử Vi</>
               )}
             </Button>
           </form>
         </Card>
       </section>
 
-      {/* Result */}
-      <section className="mx-auto mt-10 max-w-3xl px-4 sm:px-6">
-        {!m.data && !m.isPending && (
-          <Card className="glass-card border-dashed border-border/60 p-8 text-center">
-            <h3 className="font-display text-2xl font-semibold">Nhập thông tin để nhận kết quả luận giải</h3>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Hệ thống sẽ phân tích <span className="text-gradient-gold font-semibold">28 mục vận mệnh</span> theo
-              phương pháp Diễn Cẩm Tam Thế cổ truyền.
-            </p>
-
-            <div className="mt-6 inline-flex rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-700">
-              MIỄN PHÍ
-            </div>
-            <ul className="mx-auto mt-3 grid max-w-md gap-2 text-left text-sm">
-              {FREE_FEATURES.map((f) => (
-                <li key={f.label} className="flex items-center gap-2 rounded-md bg-background/40 px-3 py-2">
-                  <span className="text-lg">{f.icon}</span>
-                  <span className="flex-1">{f.label}</span>
-                  <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                </li>
-              ))}
-            </ul>
-
-            <div className="mt-8 inline-flex rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-              LUẬN GIẢI CHUYÊN SÂU
-            </div>
-            <ul className="mx-auto mt-3 grid max-w-md gap-2 text-left text-sm">
-              {LOCKED.map((l) => (
-                <li key={l} className="flex items-center gap-2 rounded-md bg-background/40 px-3 py-2 opacity-70">
-                  <span className="text-lg">🔒</span>
-                  <span className="flex-1">{l}</span>
-                  <Lock className="h-4 w-4 text-muted-foreground" />
-                </li>
-              ))}
-            </ul>
-          </Card>
-        )}
-
-        {m.isPending && (
-          <Card className="glass-card p-10 text-center">
-            <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
-            <p className="mt-3 font-display text-lg">Đang chiêm nghiệm lá số…</p>
-            <p className="mt-1 text-sm text-muted-foreground">Vui lòng đợi trong giây lát</p>
-          </Card>
-        )}
-
-        {m.data?.content && (
-          <Card className="glass-card border-border/60 p-6 shadow-elegant sm:p-10">
-            <div className="mb-4 flex items-center gap-2 text-sm text-muted-foreground">
-              <Sparkles className="h-4 w-4 text-primary" />
-              Luận giải lá số cho <span className="font-semibold text-foreground">{hoTen}</span>
-            </div>
-            <Prose content={m.data.content} />
-          </Card>
-        )}
+      <section className="mx-auto mt-10 max-w-5xl px-4 sm:px-6">
+        {!m.data && !m.isPending && <EmptyState />}
+        {m.isPending && <MysticLoading />}
+        {m.data?.data && <KetQuaBoxes kq={m.data.data} />}
       </section>
 
       <div className="h-20" />
+    </div>
+  );
+}
+
+function EmptyState() {
+  return (
+    <Card className="glass-card mx-auto max-w-3xl border-dashed border-border/60 p-8 text-center">
+      <h3 className="font-display text-2xl font-semibold">Nhập thông tin để nhận lá số</h3>
+      <p className="mt-2 text-sm text-muted-foreground">
+        Hệ thống sẽ phân tích <span className="text-gradient-gold font-semibold">14 mục vận mệnh</span> theo
+        phương pháp Diễn Cẩm Tam Thế cổ truyền.
+      </p>
+
+      <div className="mt-6 inline-flex rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-700">
+        MIỄN PHÍ
+      </div>
+      <ul className="mx-auto mt-3 grid max-w-md gap-2 text-left text-sm">
+        {FREE_FEATURES.map((f) => (
+          <li key={f.label} className="flex items-center gap-2 rounded-md bg-background/40 px-3 py-2">
+            <span className="text-lg">{f.icon}</span>
+            <span className="flex-1">{f.label}</span>
+            <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+          </li>
+        ))}
+      </ul>
+
+      <div className="mt-8 inline-flex rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+        LUẬN GIẢI CHUYÊN SÂU
+      </div>
+      <ul className="mx-auto mt-3 grid max-w-md gap-2 text-left text-sm">
+        {LOCKED.map((l) => (
+          <li key={l} className="flex items-center gap-2 rounded-md bg-background/40 px-3 py-2 opacity-70">
+            <span className="text-lg">🔒</span>
+            <span className="flex-1">{l}</span>
+            <Lock className="h-4 w-4 text-muted-foreground" />
+          </li>
+        ))}
+      </ul>
+    </Card>
+  );
+}
+
+function MysticLoading() {
+  const [i, setI] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setI((x) => (x + 1) % LOAD_PHRASES.length), 2200);
+    return () => clearInterval(id);
+  }, []);
+  return (
+    <Card className="glass-card mx-auto max-w-2xl overflow-hidden p-10 text-center">
+      <div className="relative mx-auto h-24 w-24">
+        <div className="absolute inset-0 animate-[spin_8s_linear_infinite] rounded-full border border-dashed border-primary/40" />
+        <div className="absolute inset-2 animate-[spin_5s_linear_infinite_reverse] rounded-full border border-dotted border-accent/60" />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <Compass className="h-9 w-9 animate-pulse text-primary" />
+        </div>
+      </div>
+      <p className="mt-6 font-display text-lg text-primary sm:text-xl">{LOAD_PHRASES[i]}</p>
+      <div className="mx-auto mt-4 flex max-w-xs justify-center gap-1.5">
+        {LOAD_PHRASES.map((_, k) => (
+          <div
+            key={k}
+            className={cn(
+              "h-1.5 flex-1 rounded-full transition-colors",
+              k <= i ? "bg-gradient-to-r from-primary to-accent" : "bg-border/60",
+            )}
+          />
+        ))}
+      </div>
+      <p className="mt-4 text-xs text-muted-foreground">Xin chớ nóng lòng, thiên cơ đang dần khải lộ…</p>
+    </Card>
+  );
+}
+
+function SectionBox({
+  index,
+  title,
+  subtitle,
+  children,
+}: {
+  index: number;
+  title: string;
+  subtitle?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Card className="glass-card border-border/60 p-5 shadow-soft sm:p-6">
+      <div className="mb-3 flex items-baseline gap-3 border-b border-dashed border-border pb-3">
+        <span className="font-display text-2xl text-accent">{String(index).padStart(2, "0")}</span>
+        <div className="min-w-0">
+          <h3 className="font-display text-lg font-semibold text-primary sm:text-xl">{title}</h3>
+          {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
+        </div>
+      </div>
+      <div className="text-sm leading-relaxed">{children}</div>
+    </Card>
+  );
+}
+
+function KetQuaBoxes({ kq }: { kq: KetQuaLaSo }) {
+  const t = kq.thongTinCoBan;
+  return (
+    <div className="space-y-5">
+      <SectionBox index={1} title="Bản Đồ Lá Số" subtitle="Thiên bàn 12 cung — phương pháp Diễn Cẩm Tam Thế">
+        <LaSoChart kq={kq} />
+      </SectionBox>
+
+      <SectionBox index={2} title="Xác Nhận Thông Tin Cơ Bản">
+        <dl className="grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-3">
+          <Info k="Họ tên" v={t.hoTen} />
+          <Info k="Giới tính" v={t.gioiTinh} />
+          <Info k="Giờ sinh" v={t.gioSinh} />
+          <Info k="Ngày dương" v={t.ngayDuong} />
+          <Info k="Ngày âm" v={t.ngayAm} />
+          <Info k="Bản mệnh" v={t.banMenh} />
+          <Info k="Can chi năm" v={t.canChiNam} />
+          <Info k="Can chi tháng" v={t.canChiThang} />
+          <Info k="Can chi ngày" v={t.canChiNgay} />
+          <Info k="Can chi giờ" v={t.canChiGio} />
+          <Info k="Cung Mệnh" v={t.cungMenh} />
+          <Info k="Cung Thân" v={t.cungThan} />
+          <Info k="Sao chủ Mệnh" v={t.saoChuMenh} />
+          <Info k="Sao chủ Thân" v={t.saoChuThan} />
+        </dl>
+      </SectionBox>
+
+      <SectionBox index={3} title="Luận Giải 12 Cung">
+        <div className="grid gap-3 sm:grid-cols-2">
+          {kq.luanGiai12Cung.map((c, i) => (
+            <div key={i} className="rounded-md border border-border/60 bg-background/40 p-3">
+              <div className="flex items-center justify-between">
+                <div className="font-display text-sm font-semibold text-primary">{c.ten}</div>
+                <div className="text-[11px] text-amber-700">{c.saoChinh}</div>
+              </div>
+              <p className="mt-1.5 text-sm text-foreground/80">{c.luanGiai}</p>
+            </div>
+          ))}
+        </div>
+      </SectionBox>
+
+      <SectionBox index={4} title="Đại Hạn — Tiểu Hạn (Hiện Tại)">
+        <p className="whitespace-pre-line">{kq.daiTieuHan}</p>
+      </SectionBox>
+
+      <SectionBox index={5} title="Toàn Bộ Đại Hạn">
+        <div className="overflow-hidden rounded-md border border-border/60">
+          <table className="w-full text-sm">
+            <thead className="bg-accent/40 font-display">
+              <tr>
+                <th className="px-3 py-2 text-left">Giai đoạn</th>
+                <th className="px-3 py-2 text-left">Cung</th>
+                <th className="px-3 py-2 text-left">Luận giải</th>
+              </tr>
+            </thead>
+            <tbody>
+              {kq.toanBoDaiHan.map((d, i) => (
+                <tr key={i} className="border-t border-border/60 odd:bg-background/40">
+                  <td className="px-3 py-2 font-semibold">{d.giaiDoan}</td>
+                  <td className="px-3 py-2 text-primary">{d.cung}</td>
+                  <td className="px-3 py-2 text-foreground/80">{d.luanGiai}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </SectionBox>
+
+      <SectionBox index={6} title="Tiểu Hạn Theo Năm">
+        <div className="space-y-2">
+          {kq.tieuHanTheoNam.map((n, i) => (
+            <div key={i} className="rounded-md border border-border/60 bg-background/40 p-3">
+              <div className="flex items-center gap-2">
+                <span className="font-display text-base text-primary">Năm {n.nam}</span>
+                <span className="rounded-full bg-accent/40 px-2 py-0.5 text-[11px]">{n.canChi}</span>
+              </div>
+              <p className="mt-1 text-sm text-foreground/80">{n.luanGiai}</p>
+            </div>
+          ))}
+        </div>
+      </SectionBox>
+
+      <SectionBox index={7} title="Diễn Cầm Tam Thế" subtitle="Tiền vận — Trung vận — Hậu vận">
+        <p className="whitespace-pre-line">{kq.dienCamTamThe}</p>
+      </SectionBox>
+
+      <SectionBox index={8} title="Coi Số Sanh Tổng Luận">
+        <p className="whitespace-pre-line">{kq.soSanhTongLuan}</p>
+      </SectionBox>
+
+      <SectionBox index={9} title="Số Cầu (12 Cầu)">
+        <div className="grid gap-2 sm:grid-cols-2">
+          {kq.soCau.map((s, i) => {
+            const tone =
+              s.danhGia.toLowerCase().includes("kiết") || s.danhGia.toLowerCase().includes("kiet")
+                ? "bg-emerald-500/10 text-emerald-700"
+                : s.danhGia.toLowerCase().includes("hung")
+                  ? "bg-rose-500/10 text-rose-700"
+                  : "bg-amber-500/10 text-amber-700";
+            return (
+              <div key={i} className="flex items-start gap-2 rounded-md border border-border/60 bg-background/40 p-2.5">
+                <span className="mt-0.5 inline-flex h-7 w-12 items-center justify-center rounded-full font-display text-xs font-semibold uppercase tracking-wider text-primary">
+                  {s.ten}
+                </span>
+                <span className={cn("rounded-full px-2 py-0.5 text-[11px] font-semibold", tone)}>
+                  {s.danhGia}
+                </span>
+                <span className="flex-1 text-sm text-foreground/80">{s.luanGiai}</span>
+              </div>
+            );
+          })}
+        </div>
+      </SectionBox>
+
+      <SectionBox index={10} title="Coi Làm Ăn — Nghề Nghiệp Gì Thuận Số">
+        <p className="whitespace-pre-line">{kq.ngheNghiepThuanSo}</p>
+      </SectionBox>
+
+      <SectionBox index={11} title="Thiên Can Hiệp Tháng Sanh — Tìm Nghề Nghiệp">
+        <p className="whitespace-pre-line">{kq.thienCanHiepThangSanh}</p>
+      </SectionBox>
+
+      <SectionBox index={12} title="Ngày Sang Hèn">
+        <p className="whitespace-pre-line">{kq.ngaySangHen}</p>
+      </SectionBox>
+
+      <SectionBox index={13} title="Coi Số Có Nhà Hay Không">
+        <p className="whitespace-pre-line">{kq.soCoNha}</p>
+      </SectionBox>
+
+      <SectionBox index={14} title="Số Kiếp Vợ Chồng">
+        <p className="whitespace-pre-line">{kq.soKiepVoChong}</p>
+      </SectionBox>
+
+      <p className="text-center text-xs italic text-muted-foreground">
+        ⚠ Mọi luận giải mang tính tham khảo dưới góc nhìn văn hoá phương Đông, không khẳng định tuyệt đối.
+      </p>
+    </div>
+  );
+}
+
+function Info({ k, v }: { k: string; v: string }) {
+  return (
+    <div className="flex flex-col">
+      <dt className="text-[11px] uppercase tracking-wider text-muted-foreground">{k}</dt>
+      <dd className="text-sm font-medium text-foreground">{v}</dd>
     </div>
   );
 }
