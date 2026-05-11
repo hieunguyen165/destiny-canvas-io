@@ -54,15 +54,15 @@ export function useGeminiKey() {
   return v;
 }
 
-/** Returns true when current Supabase user has admin role. */
+/** Returns admin-role check with loading state. */
 export function useIsAdmin() {
-  const [v, setV] = useState(false);
+  const [state, setState] = useState<{ loading: boolean; isAdmin: boolean }>({ loading: true, isAdmin: false });
   useEffect(() => {
     let cancel = false;
     const check = async () => {
       const { data: u } = await supabase.auth.getUser();
       if (!u.user) {
-        if (!cancel) setV(false);
+        if (!cancel) setState({ loading: false, isAdmin: false });
         return;
       }
       const { data } = await supabase
@@ -71,7 +71,7 @@ export function useIsAdmin() {
         .eq("user_id", u.user.id)
         .eq("role", "admin")
         .maybeSingle();
-      if (!cancel) setV(!!data);
+      if (!cancel) setState({ loading: false, isAdmin: !!data });
     };
     check();
     const { data: sub } = supabase.auth.onAuthStateChange(() => check());
@@ -80,5 +80,5 @@ export function useIsAdmin() {
       sub.subscription.unsubscribe();
     };
   }, []);
-  return v;
+  return state;
 }
