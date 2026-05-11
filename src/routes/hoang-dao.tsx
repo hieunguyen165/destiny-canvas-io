@@ -38,10 +38,11 @@ const CUNG = [
 
 function HoangDaoPage() {
   const fn = useServerFn(luanCungHoangDao);
+  const geminiKey = useGeminiKey();
   const [chosen, setChosen] = useState<string | null>(null);
 
   const m = useMutation({
-    mutationFn: (cung: string) => fn({ data: { cung } }),
+    mutationFn: (cung: string) => fn({ data: { cung, geminiKey } }),
     onError: (e) => toast.error(e instanceof Error ? e.message : "Có lỗi xảy ra"),
   });
 
