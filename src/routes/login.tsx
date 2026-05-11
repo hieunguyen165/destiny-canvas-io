@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { Sparkles, Loader2 } from "lucide-react";
+import { Compass, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -34,7 +34,7 @@ function LoginPage() {
       <Card className="glass-card w-full p-8 shadow-elegant">
         <div className="mb-6 text-center">
           <div className="mx-auto inline-flex h-12 w-12 items-center justify-center rounded-full gradient-primary text-primary-foreground shadow-elegant">
-            <Sparkles className="h-5 w-5" />
+            <Compass className="h-5 w-5" />
           </div>
           <h1 className="mt-3 font-display text-3xl font-semibold">Đăng nhập</h1>
           <p className="mt-1 text-sm text-muted-foreground">Tiếp tục hành trình khám phá vận mệnh</p>
