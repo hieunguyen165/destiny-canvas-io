@@ -32,7 +32,7 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --font-display: "Cormorant Garamond", "Be Vietnam Pro", serif;
+  --font-display: "Be Vietnam Pro", system-ui, sans-serif;
   --font-sans: "Be Vietnam Pro", system-ui, sans-serif;
 }
 
@@ -112,13 +112,15 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
+    font-weight: 400;
     background-image:
       radial-gradient(circle at 10% 0%, oklch(0.78 0.16 75 / 0.08), transparent 40%),
       radial-gradient(circle at 90% 100%, oklch(0.45 0.18 295 / 0.08), transparent 40%);
     background-attachment: fixed;
   }
-  h1, h2, h3, h4, .font-display {
+  h1, h2, h3, h4, h5, h6, .font-display {
     font-family: var(--font-display);
+    font-weight: 700;
     letter-spacing: -0.01em;
   }
 }

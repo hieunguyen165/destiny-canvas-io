@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { lapLaSo, luanSau, type KetQuaLaSo } from "@/lib/tuvi.functions";
+import { useGeminiKey } from "@/lib/admin";
 import { LaSoChart } from "@/components/la-so-chart";
 import { Prose } from "@/components/prose";
 import { ChevronDown, Sparkles } from "lucide-react";
@@ -277,6 +278,7 @@ function SectionBox({
 
 function DeepDive({ muc, tomTat, kq }: { muc: string; tomTat: string; kq: KetQuaLaSo }) {
   const luanSauFn = useServerFn(luanSau);
+  const geminiKey = useGeminiKey();
   const [open, setOpen] = useState(false);
   const m = useMutation({
     mutationFn: () =>
@@ -293,6 +295,7 @@ function DeepDive({ muc, tomTat, kq }: { muc: string; tomTat: string; kq: KetQua
             cungThan: kq.thongTinCoBan.cungThan,
             gioSinh: kq.thongTinCoBan.gioSinh,
           },
+          geminiKey,
         },
       }),
     onError: (e) => toast.error(e instanceof Error ? e.message : "Không truy được tàng thư, mời thử lại."),

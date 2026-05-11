@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { Compass, LogIn, UserPlus, LogOut, Menu, X } from "lucide-react";
+import { Compass, LogIn, UserPlus, LogOut, Menu, X, Shield } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { useIsAdmin } from "@/lib/admin";
 import { cn } from "@/lib/utils";
 
 const NAV = [
@@ -18,6 +19,7 @@ export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const path = useRouterState({ select: (s) => s.location.pathname });
+  const isAdmin = useIsAdmin();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setEmail(data.session?.user.email ?? null));
@@ -57,6 +59,15 @@ export function SiteHeader() {
         </nav>
 
         <div className="hidden items-center gap-2 md:flex">
+          <Button
+            variant={isAdmin ? "default" : "ghost"}
+            size="sm"
+            asChild
+            className={isAdmin ? "gradient-primary text-primary-foreground" : ""}
+            title="Khu quản trị"
+          >
+            <Link to="/admin"><Shield className="mr-1.5 h-4 w-4" />Admin</Link>
+          </Button>
           {email ? (
             <>
               <span className="hidden text-sm text-muted-foreground lg:inline">{email}</span>

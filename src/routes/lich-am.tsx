@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Prose } from "@/components/prose";
 import { doiLich } from "@/lib/tuvi.functions";
+import { useGeminiKey } from "@/lib/admin";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/lich-am")({
@@ -26,6 +27,7 @@ export const Route = createFileRoute("/lich-am")({
 
 function LichAmPage() {
   const fn = useServerFn(doiLich);
+  const geminiKey = useGeminiKey();
   const today = new Date();
   const [chieu, setChieu] = useState<"d2a" | "a2d">("d2a");
   const [ngay, setNgay] = useState(String(today.getDate()));
@@ -33,7 +35,7 @@ function LichAmPage() {
   const [nam, setNam] = useState(String(today.getFullYear()));
 
   const m = useMutation({
-    mutationFn: (v: { ngay: number; thang: number; nam: number; chieu: "d2a" | "a2d" }) => fn({ data: v }),
+    mutationFn: (v: { ngay: number; thang: number; nam: number; chieu: "d2a" | "a2d" }) => fn({ data: { ...v, geminiKey } }),
     onError: (e) => toast.error(e instanceof Error ? e.message : "Có lỗi xảy ra"),
   });
 
