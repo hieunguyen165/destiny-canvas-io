@@ -1,0 +1,154 @@
+import { useEffect, useState } from "react";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import { Sparkles, LogIn, UserPlus, LogOut, Menu, X } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+
+const NAV = [
+  { to: "/", label: "Tử Vi" },
+  { to: "/van-menh", label: "Vận Mệnh" },
+  { to: "/hoang-dao", label: "Hoàng Đạo" },
+  { to: "/lich-am", label: "Lịch Âm" },
+  { to: "/ngay-tot", label: "Ngày Tốt" },
+] as const;
+
+export function SiteHeader() {
+  const [email, setEmail] = useState<string | null>(null);
+  const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
+  const path = useRouterState({ select: (s) => s.location.pathname });
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => setEmail(data.session?.user.email ?? null));
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setEmail(s?.user.email ?? null));
+    return () => sub.subscription.unsubscribe();
+  }, []);
+
+  const onLogout = async () => {
+    await supabase.auth.signOut();
+    navigate({ to: "/" });
+  };
+
+  return (
+    <header className="sticky top-0 z-40 border-b border-border/40 bg-background/70 backdrop-blur-xl">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
+        <Link to="/" className="flex items-center gap-2 font-display text-xl font-semibold">
+          <Sparkles className="h-5 w-5 text-primary" />
+          <span className="text-gradient">Diễn Cẩm Tam Thế</span>
+        </Link>
+
+        <nav className="hidden items-center gap-1 md:flex">
+          {NAV.map((item) => {
+            const active = item.to === "/" ? path === "/" : path.startsWith(item.to);
+            return (
+              <Link
+                key={item.to}
+                to={item.to}
+                className={cn(
+                  "rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
+                  active ? "bg-primary/10 text-primary" : "text-foreground/80 hover:bg-accent hover:text-foreground",
+                )}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
+        </nav>
+
+        <div className="hidden items-center gap-2 md:flex">
+          {email ? (
+            <>
+              <span className="hidden text-sm text-muted-foreground lg:inline">{email}</span>
+              <Button variant="outline" size="sm" onClick={onLogout}>
+                <LogOut className="mr-1.5 h-4 w-4" /> Đăng xuất
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button variant="ghost" size="sm" asChild>
+                <Link to="/login"><LogIn className="mr-1.5 h-4 w-4" />Đăng nhập</Link>
+              </Button>
+              <Button size="sm" className="gradient-primary text-primary-foreground shadow-elegant" asChild>
+                <Link to="/signup"><UserPlus className="mr-1.5 h-4 w-4" />Đăng ký</Link>
+              </Button>
+            </>
+          )}
+        </div>
+
+        <button className="md:hidden" onClick={() => setOpen((v) => !v)} aria-label="menu">
+          {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+        </button>
+      </div>
+
+      {open && (
+        <div className="border-t border-border/40 bg-background/95 backdrop-blur md:hidden">
+          <div className="mx-auto flex max-w-7xl flex-col gap-1 px-4 py-3">
+            {NAV.map((item) => (
+              <Link
+                key={item.to}
+                to={item.to}
+                onClick={() => setOpen(false)}
+                className="rounded-md px-3 py-2 text-sm font-medium hover:bg-accent"
+              >
+                {item.label}
+              </Link>
+            ))}
+            <div className="mt-2 flex gap-2 border-t border-border/40 pt-3">
+              {email ? (
+                <Button variant="outline" size="sm" onClick={onLogout} className="flex-1">
+                  <LogOut className="mr-1.5 h-4 w-4" /> Đăng xuất
+                </Button>
+              ) : (
+                <>
+                  <Button variant="outline" size="sm" asChild className="flex-1">
+                    <Link to="/login" onClick={() => setOpen(false)}>Đăng nhập</Link>
+                  </Button>
+                  <Button size="sm" asChild className="gradient-primary flex-1 text-primary-foreground">
+                    <Link to="/signup" onClick={() => setOpen(false)}>Đăng ký</Link>
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </header>
+  );
+}
+
+export function SiteFooter() {
+  return (
+    <footer className="mt-20 border-t border-border/40 bg-background/60 backdrop-blur">
+      <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 md:grid-cols-3">
+        <div>
+          <div className="flex items-center gap-2 font-display text-lg font-semibold">
+            <Sparkles className="h-4 w-4 text-primary" />
+            <span className="text-gradient">Diễn Cẩm Tam Thế</span>
+          </div>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Giải mã vận mệnh theo tinh hoa tử vi cổ truyền Việt Nam.
+          </p>
+        </div>
+        <div>
+          <h4 className="font-display text-sm font-semibold uppercase tracking-widest text-foreground/70">Khám phá</h4>
+          <ul className="mt-3 space-y-1.5 text-sm text-muted-foreground">
+            {NAV.map((n) => (
+              <li key={n.to}><Link to={n.to} className="hover:text-primary">{n.label}</Link></li>
+            ))}
+          </ul>
+        </div>
+        <div>
+          <h4 className="font-display text-sm font-semibold uppercase tracking-widest text-foreground/70">Lưu ý</h4>
+          <p className="mt-3 text-sm text-muted-foreground">
+            Mọi luận giải mang tính tham khảo dưới góc nhìn văn hoá phương Đông,
+            không thay thế cho quyết định cá nhân.
+          </p>
+        </div>
+      </div>
+      <div className="border-t border-border/40 py-4 text-center text-xs text-muted-foreground">
+        © {new Date().getFullYear()} Diễn Cẩm Tam Thế · Lấy cảm hứng văn hoá tử vi Việt Nam.
+      </div>
+    </footer>
+  );
+}
