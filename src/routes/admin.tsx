@@ -16,7 +16,7 @@ export const Route = createFileRoute("/admin")({
 });
 
 function AdminPage() {
-  const isAdmin = useIsAdmin();
+  const { loading: adminLoading, isAdmin } = useIsAdmin();
   const [email, setEmail] = useState<string | null>(null);
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setEmail(data.user?.email ?? null));
@@ -32,6 +32,17 @@ function AdminPage() {
           <h1 className="mt-3 font-display text-2xl font-bold">Khu Quản Trị</h1>
           <p className="mt-2 text-sm text-muted-foreground">Vui lòng đăng nhập bằng tài khoản quản trị.</p>
           <Button asChild className="gradient-primary mt-5 text-primary-foreground"><Link to="/login">Đăng nhập</Link></Button>
+        </Card>
+      </div>
+    );
+  }
+
+  if (adminLoading) {
+    return (
+      <div className="mx-auto max-w-lg px-4 py-12">
+        <Card className="glass-card p-8 text-center shadow-elegant">
+          <Shield className="mx-auto h-10 w-10 animate-pulse text-primary" />
+          <p className="mt-3 text-sm text-muted-foreground">Đang xác thực quyền quản trị…</p>
         </Card>
       </div>
     );
