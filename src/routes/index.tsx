@@ -1,5 +1,5 @@
-import { createFileRoute, useServerFn } from "@tanstack/react-router";
-import { useServerFn as useSrvFn } from "@tanstack/react-start";
+import { createFileRoute } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Sparkles, User, Calendar, Sun, Moon, Lock, CheckCircle2, Loader2 } from "lucide-react";
@@ -51,7 +51,7 @@ const LOCKED = [
 ];
 
 function TuViPage() {
-  const lapLaSoFn = useSrvFn(lapLaSo);
+  const lapLaSoFn = useServerFn(lapLaSo);
   const [hoTen, setHoTen] = useState("");
   const [gioiTinh, setGioiTinh] = useState<"nam" | "nu">("nam");
   const [loaiLich, setLoaiLich] = useState<"duong" | "am">("duong");
@@ -60,8 +60,9 @@ function TuViPage() {
   const [nam, setNam] = useState("");
   const [gio, setGio] = useState("0");
 
+  type Vars = { hoTen: string; gioiTinh: "nam" | "nu"; loaiLich: "duong" | "am"; ngay: number; thang: number; nam: number; gio: number };
   const m = useMutation({
-    mutationFn: (vars: Parameters<typeof lapLaSoFn>[0]["data"]) => lapLaSoFn({ data: vars }),
+    mutationFn: (vars: Vars) => lapLaSoFn({ data: vars }),
     onError: (e) => toast.error(e instanceof Error ? e.message : "Có lỗi xảy ra, mời thử lại."),
   });
 
