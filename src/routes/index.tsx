@@ -10,8 +10,10 @@ import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { lapLaSo, type KetQuaLaSo } from "@/lib/tuvi.functions";
+import { lapLaSo, luanSau, type KetQuaLaSo } from "@/lib/tuvi.functions";
 import { LaSoChart } from "@/components/la-so-chart";
+import { Prose } from "@/components/prose";
+import { ChevronDown, Sparkles } from "lucide-react";
 import heroBg from "@/assets/hero-bg.jpg";
 import vase from "@/assets/peach-vase.png";
 
