@@ -4,12 +4,36 @@ import { z } from "zod";
 import { createLovableAiGatewayProvider } from "./ai-gateway";
 
 const MODEL = "google/gemini-2.5-pro";
+const GEMINI_DIRECT_MODEL = "gemini-2.5-pro";
 
 function getModel() {
   const key = process.env.LOVABLE_API_KEY;
   if (!key) throw new Error("LOVABLE_API_KEY chưa được cấu hình");
   return createLovableAiGatewayProvider(key)(MODEL);
 }
+
+async function runText(prompt: string, geminiKey?: string): Promise<string> {
+  if (geminiKey && geminiKey.trim()) {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_DIRECT_MODEL}:generateContent?key=${encodeURIComponent(geminiKey.trim())}`;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
+    });
+    if (!res.ok) {
+      const body = await res.text();
+      throw new Error(`Gemini API ${res.status}: ${body.slice(0, 300)}`);
+    }
+    const j = (await res.json()) as { candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }> };
+    const text = j.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("") ?? "";
+    if (!text) throw new Error("Gemini không trả về nội dung");
+    return text;
+  }
+  const { text } = await generateText({ model: getModel(), prompt });
+  return text;
+}
+
+const optKey = z.string().optional();
 
 const laSoSchema = z.object({
   hoTen: z.string().min(1).max(80),
