@@ -178,19 +178,26 @@ THÔNG TIN:
 - Ngày sinh: ${data.ngay}/${data.thang}/${data.nam} (${data.loaiLich === "duong" ? "Dương lịch" : "Âm lịch"})
 - Giờ sinh: Giờ ${GIO_LABEL[data.gio]}
 
-TRẢ VỀ JSON theo schema. Lưu ý:
-- "luanGiai12Cung" PHẢI đúng 12 mục theo thứ tự: ${TEN_12_CUNG.join(", ")}.
-- "soCau" PHẢI đúng 12 mục theo thứ tự: Tài, Quan, Ấn, Phúc, Thọ, Lộc, Mã, Khốc, Hư, Hình, Kiếp, Sát.
-- "toanBoDaiHan" chia 6-10 giai đoạn 10 năm.
-- "tieuHanTheoNam" gồm 3-5 năm gần nhất (kể cả năm nay 2026).
+Chỉ trả về MỘT JSON object hợp lệ, không markdown, không code fence.
+JSON phải có đúng các khóa như mẫu sau, có thể viết lại toàn bộ phần luận giải cho sâu sắc hơn:
+${JSON.stringify(fallbackKetQua(data), null, 2)}
+
+Lưu ý:
+- "luanGiai12Cung" đúng 12 mục theo thứ tự: ${TEN_12_CUNG.join(", ")}.
+- "soCau" đúng 12 mục theo thứ tự: ${TEN_12_CAU.join(", ")}.
 - Mọi luận giải mang tính tham khảo dưới góc nhìn văn hoá, không khẳng định tuyệt đối.`;
 
-    const { object } = await generateObject({
-      model,
-      schema: ketQuaSchema,
-      prompt,
-    });
-    return { ok: true as const, data: object };
+    try {
+      const { text } = await generateText({ model, prompt });
+      const parsed = extractJson(text);
+      const result = ketQuaSchema.safeParse(parsed);
+      if (result.success) return { ok: true as const, data: result.data };
+      console.warn("Không đọc được JSON lá số từ mô hình, dùng bản luận giải dự phòng", result.error.flatten());
+    } catch (error) {
+      console.warn("Lập lá số bằng mô hình gặp lỗi, dùng bản luận giải dự phòng", error);
+    }
+
+    return { ok: true as const, data: fallbackKetQua(data) };
   });
 
 // Các function khác giữ nguyên
