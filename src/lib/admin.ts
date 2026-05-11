@@ -1,34 +1,54 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
-const GEMINI_KEY = "dctt_gemini_key";
+const SETTING_KEY = "gemini_api_key";
 const EVT = "dctt-admin-change";
 
 function emit() {
   if (typeof window !== "undefined") window.dispatchEvent(new Event(EVT));
 }
 
-export function setGeminiKey(key: string) {
-  if (key) localStorage.setItem(GEMINI_KEY, key.trim());
-  else localStorage.removeItem(GEMINI_KEY);
+/** Admin-only: lưu khoá Gemini dùng chung cho TẤT CẢ user vào DB. */
+export async function setGeminiKey(key: string) {
+  const trimmed = key.trim();
+  if (trimmed) {
+    const { data: u } = await supabase.auth.getUser();
+    const { error } = await supabase
+      .from("app_settings")
+      .upsert({ key: SETTING_KEY, value: trimmed, updated_by: u.user?.id, updated_at: new Date().toISOString() });
+    if (error) throw error;
+  } else {
+    const { error } = await supabase.from("app_settings").delete().eq("key", SETTING_KEY);
+    if (error) throw error;
+  }
   emit();
 }
 
-export function getGeminiKey(): string | undefined {
-  if (typeof window === "undefined") return undefined;
-  return localStorage.getItem(GEMINI_KEY) || undefined;
+async function fetchKey(): Promise<string | undefined> {
+  const { data } = await supabase.from("app_settings").select("value").eq("key", SETTING_KEY).maybeSingle();
+  return data?.value || undefined;
 }
 
+/** Hook: trả khoá Gemini dùng chung từ DB, tự đồng bộ realtime khi admin đổi. */
 export function useGeminiKey() {
   const [v, setV] = useState<string | undefined>(undefined);
   useEffect(() => {
-    const sync = () => setV(localStorage.getItem(GEMINI_KEY) || undefined);
-    sync();
-    window.addEventListener(EVT, sync);
-    window.addEventListener("storage", sync);
+    let cancel = false;
+    const load = () => fetchKey().then((k) => { if (!cancel) setV(k); });
+    load();
+
+    const onLocal = () => load();
+    window.addEventListener(EVT, onLocal);
+
+    const channel = supabase
+      .channel("app_settings-sync")
+      .on("postgres_changes", { event: "*", schema: "public", table: "app_settings" }, () => load())
+      .subscribe();
+
     return () => {
-      window.removeEventListener(EVT, sync);
-      window.removeEventListener("storage", sync);
+      cancel = true;
+      window.removeEventListener(EVT, onLocal);
+      supabase.removeChannel(channel);
     };
   }, []);
   return v;
