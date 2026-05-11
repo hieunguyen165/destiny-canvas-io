@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { Compass, LogIn, UserPlus, LogOut, Menu, X, Shield } from "lucide-react";
+import { Compass, LogIn, UserPlus, LogOut, Menu, X, Shield, UserCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useIsAdmin } from "@/lib/admin";
@@ -59,18 +59,16 @@ export function SiteHeader() {
         </nav>
 
         <div className="hidden items-center gap-2 md:flex">
-          <Button
-            variant={isAdmin ? "default" : "ghost"}
-            size="sm"
-            asChild
-            className={isAdmin ? "gradient-primary text-primary-foreground" : ""}
-            title="Khu quản trị"
-          >
-            <Link to="/admin"><Shield className="mr-1.5 h-4 w-4" />Admin</Link>
-          </Button>
+          {isAdmin && (
+            <Button variant="default" size="sm" asChild className="gradient-primary text-primary-foreground" title="Khu quản trị">
+              <Link to="/admin"><Shield className="mr-1.5 h-4 w-4" />Admin</Link>
+            </Button>
+          )}
           {email ? (
             <>
-              <span className="hidden text-sm text-muted-foreground lg:inline">{email}</span>
+              <Button variant="ghost" size="sm" asChild>
+                <Link to="/tai-khoan"><UserCircle className="mr-1.5 h-4 w-4" />Tài khoản</Link>
+              </Button>
               <Button variant="outline" size="sm" onClick={onLogout}>
                 <LogOut className="mr-1.5 h-4 w-4" /> Đăng xuất
               </Button>
