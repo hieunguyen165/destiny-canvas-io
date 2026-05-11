@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Prose } from "@/components/prose";
 import { ngayTot } from "@/lib/tuvi.functions";
+import { useGeminiKey } from "@/lib/admin";
 
 export const Route = createFileRoute("/ngay-tot")({
   head: () => ({
