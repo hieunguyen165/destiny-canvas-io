@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { cn } from "@/lib/utils";
 import { lapLaSo, luanSau, type KetQuaLaSo } from "@/lib/tuvi.functions";
 import { useGeminiKey } from "@/lib/admin";
+import { supabase } from "@/integrations/supabase/client";
 import { LaSoChart } from "@/components/la-so-chart";
 import { Prose } from "@/components/prose";
 import { ChevronDown } from "lucide-react";
@@ -72,6 +73,17 @@ function TuViPage() {
   type Vars = { hoTen: string; gioiTinh: "nam" | "nu"; loaiLich: "duong" | "am"; ngay: number; thang: number; nam: number; gio: number };
   const m = useMutation({
     mutationFn: (vars: Vars) => lapLaSoFn({ data: vars }),
+    onSuccess: async (res, vars) => {
+      const { data: u } = await supabase.auth.getUser();
+      if (u.user && res?.data) {
+        await supabase.from("la_so_history").insert({
+          user_id: u.user.id,
+          ho_ten: vars.hoTen,
+          input: vars,
+          result: res.data,
+        });
+      }
+    },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Có lỗi xảy ra, mời thử lại."),
   });
 
