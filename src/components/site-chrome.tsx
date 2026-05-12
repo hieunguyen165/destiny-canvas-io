@@ -111,11 +111,6 @@ export function SiteHeader() {
                   <Coins className="h-3.5 w-3.5" /> {points.toLocaleString("vi-VN")} điểm
                 </Link>
               )}
-              {isAdmin && (
-                <Button size="sm" asChild className="gradient-primary text-primary-foreground">
-                  <Link to="/admin" onClick={() => setOpen(false)}><Shield className="mr-1.5 h-4 w-4" />Admin</Link>
-                </Button>
-              )}
               {email ? (
                 <>
                   <Button variant="outline" size="sm" asChild className="flex-1">
