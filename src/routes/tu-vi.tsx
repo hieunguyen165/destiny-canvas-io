@@ -267,7 +267,7 @@ function EmptyState() {
 function MysticLoading() {
   const [i, setI] = useState(0);
   useEffect(() => {
-    const id = setInterval(() => setI((x) => (x + 1) % LOAD_PHRASES.length), 2200);
+    const id = setInterval(() => setI((x) => Math.min(x + 1, LOAD_PHRASES.length - 1)), 1200);
     return () => clearInterval(id);
   }, []);
   return (
