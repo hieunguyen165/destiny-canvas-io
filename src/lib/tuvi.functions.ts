@@ -391,14 +391,16 @@ const vanMenhSchema = z.object({
 export const vanMenh = createServerFn({ method: "POST" })
   .middleware([attachAuthHeader, requireSupabaseAuth])
   .inputValidator((d: unknown) => vanMenhSchema.parse(d))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    const ctx = context as { supabase: any };
+    const charge = await chargePoints(ctx.supabase, "van_menh", `Luận vận mệnh ${data.conGiap} ${data.nam}`);
+    if (charge.error) return { ok: false as const, error: charge.error };
     const sharedKey = await getSharedAiKey();
-    const r = await safeRun(
+    return safeRun(
       `Luận giải vận mệnh năm ${data.nam} cho người tuổi ${data.conGiap} bằng tiếng Việt, văn phong tử vi cổ truyền.
 Trả về MARKDOWN với các phần: ## Tổng Quan, ## Tài Lộc, ## Công Việc, ## Tình Duyên, ## Sức Khoẻ, ## Lưu Ý, ## Màu & Số May Mắn. Mỗi phần 2-3 câu súc tích.`,
       sharedKey,
     );
-    return r;
   });
 
 const cungHDSchema = z.object({ cung: z.string().min(1) });
@@ -406,14 +408,16 @@ const cungHDSchema = z.object({ cung: z.string().min(1) });
 export const luanCungHoangDao = createServerFn({ method: "POST" })
   .middleware([attachAuthHeader, requireSupabaseAuth])
   .inputValidator((d: unknown) => cungHDSchema.parse(d))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    const ctx = context as { supabase: any };
+    const charge = await chargePoints(ctx.supabase, "hoang_dao", `Luận cung ${data.cung}`);
+    if (charge.error) return { ok: false as const, error: charge.error };
     const sharedKey = await getSharedAiKey();
-    const r = await safeRun(
+    return safeRun(
       `Tử vi tuần này cho cung hoàng đạo ${data.cung} (phương Tây), bằng tiếng Việt.
 Markdown gồm: ## Tổng Quan Tuần, ## Sự Nghiệp, ## Tài Chính, ## Tình Yêu, ## Sức Khoẻ, ## Lời Khuyên. Mỗi phần 2-3 câu.`,
       sharedKey,
     );
-    return r;
   });
 
 const ngayTotSchema = z.object({
@@ -425,16 +429,18 @@ const ngayTotSchema = z.object({
 export const ngayTot = createServerFn({ method: "POST" })
   .middleware([attachAuthHeader, requireSupabaseAuth])
   .inputValidator((d: unknown) => ngayTotSchema.parse(d))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    const ctx = context as { supabase: any };
+    const charge = await chargePoints(ctx.supabase, "ngay_tot", `Xem ngày tốt ${data.loaiViec} ${data.thang}/${data.nam}`);
+    if (charge.error) return { ok: false as const, error: charge.error };
     const sharedKey = await getSharedAiKey();
-    const r = await safeRun(
+    return safeRun(
       `Liệt kê 5-8 ngày tốt trong tháng ${data.thang}/${data.nam} (dương lịch) phù hợp cho việc "${data.loaiViec}" theo lịch can chi Việt Nam.
 Trả về MARKDOWN dạng bảng:
 | Ngày dương | Ngày âm | Can Chi | Giờ tốt | Lý do |
 Sau bảng thêm phần ## Ngày Cần Tránh (1-2 ngày xấu) và ## Lời Khuyên (2 câu).`,
       sharedKey,
     );
-    return r;
   });
 
 const lichAmSchema = z.object({
@@ -447,10 +453,13 @@ const lichAmSchema = z.object({
 export const doiLich = createServerFn({ method: "POST" })
   .middleware([attachAuthHeader, requireSupabaseAuth])
   .inputValidator((d: unknown) => lichAmSchema.parse(d))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    const ctx = context as { supabase: any };
+    const charge = await chargePoints(ctx.supabase, "lich_am", `Đổi lịch ${data.ngay}/${data.thang}/${data.nam}`);
+    if (charge.error) return { ok: false as const, error: charge.error };
     const huong = data.chieu === "d2a" ? "Dương lịch sang Âm lịch" : "Âm lịch sang Dương lịch";
     const sharedKey = await getSharedAiKey();
-    const r = await safeRun(
+    return safeRun(
       `Hãy đổi ngày ${data.ngay}/${data.thang}/${data.nam} từ ${huong} một cách chính xác.
 Trả về MARKDOWN ngắn gọn:
 - **Dương lịch:** ...
@@ -462,5 +471,4 @@ Trả về MARKDOWN ngắn gọn:
 - **Đánh giá:** Hoàng đạo / Hắc đạo, có nên làm việc lớn không (1 câu).`,
       sharedKey,
     );
-    return r;
   });
