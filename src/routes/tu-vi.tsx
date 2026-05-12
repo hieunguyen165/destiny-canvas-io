@@ -375,6 +375,8 @@ function DeepDive({ muc, costKey, tomTat, kq }: { muc: string; costKey: string; 
     </div>
   );
 }
+
+function KetQuaBoxes({ kq }: { kq: KetQuaLaSo }) {
   const t = kq.thongTinCoBan;
   return (
     <div className="space-y-5">
