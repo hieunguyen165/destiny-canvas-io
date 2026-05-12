@@ -81,7 +81,11 @@ function TuViPage() {
 
   type Vars = { hoTen: string; gioiTinh: "nam" | "nu"; loaiLich: "duong" | "am"; ngay: number; thang: number; nam: number; gio: number };
   const m = useMutation({
-    mutationFn: async (vars: Vars) => ({ ok: true as const, data: fallbackKetQua(vars) }),
+    mutationFn: async (vars: Vars) => {
+      // Cho phép chạy hết hiệu ứng load huyền bí (5 phrase × ~1.2s ≈ 6s) để tạo cảm giác cuốn hút.
+      await new Promise((r) => setTimeout(r, 6000));
+      return { ok: true as const, data: fallbackKetQua(vars) };
+    },
     onSuccess: async (res, vars) => {
       try {
         const { data: u } = await supabase.auth.getUser();
