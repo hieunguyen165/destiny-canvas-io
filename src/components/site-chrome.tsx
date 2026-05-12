@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { Sparkles, LogIn, UserPlus, LogOut, Menu, X, Shield, UserCircle, Coins } from "lucide-react";
+import { Sparkles, LogIn, UserPlus, LogOut, Menu, X, UserCircle, Coins } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { useIsAdmin, useMyPoints, useAppSettings } from "@/lib/admin";
+import { useMyPoints, useAppSettings } from "@/lib/admin";
 import { cn } from "@/lib/utils";
 
 const NAV = [
@@ -20,7 +20,7 @@ export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const path = useRouterState({ select: (s) => s.location.pathname });
-  const { isAdmin } = useIsAdmin();
+  
   const points = useMyPoints();
 
   useEffect(() => {
@@ -66,11 +66,6 @@ export function SiteHeader() {
               <Coins className="h-3.5 w-3.5" /> {points.toLocaleString("vi-VN")} điểm
             </Link>
           )}
-          {isAdmin && (
-            <Button variant="default" size="sm" asChild className="gradient-primary text-primary-foreground" title="Khu quản trị">
-              <Link to="/admin"><Shield className="mr-1.5 h-4 w-4" />Admin</Link>
-            </Button>
-          )}
           {email ? (
             <>
               <Button variant="ghost" size="sm" asChild>
@@ -115,11 +110,6 @@ export function SiteHeader() {
                 <Link to="/tai-khoan" onClick={() => setOpen(false)} className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-700">
                   <Coins className="h-3.5 w-3.5" /> {points.toLocaleString("vi-VN")} điểm
                 </Link>
-              )}
-              {isAdmin && (
-                <Button size="sm" asChild className="gradient-primary text-primary-foreground">
-                  <Link to="/admin" onClick={() => setOpen(false)}><Shield className="mr-1.5 h-4 w-4" />Admin</Link>
-                </Button>
               )}
               {email ? (
                 <>

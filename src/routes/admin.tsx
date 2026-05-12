@@ -1,6 +1,6 @@
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Shield, KeyRound, Save, Users, History, Settings as SettingsIcon, Trash2, Eye, LayoutDashboard, Coins, Plus, UserCircle, FileText, Sparkles, Info } from "lucide-react";
+import { Shield, KeyRound, Save, Users, History, Settings as SettingsIcon, Trash2, Eye, LayoutDashboard, Coins, Plus, UserCircle, FileText, Sparkles, Info, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { setGeminiKey, useGeminiKey, useIsAdmin, useAppSettings, setAppSetting } from "@/lib/admin";
 import { checkIsAdmin } from "@/lib/admin.functions";
+import { COST_KEYS, DEFAULT_COSTS, fetchCosts, saveCosts } from "@/lib/costs";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Quản trị — Hệ Thống Thần Cơ" }] }),
@@ -91,12 +92,16 @@ function AdminPage() {
         <TabsList className="mb-4 flex-wrap">
           <TabsTrigger value="dashboard"><LayoutDashboard className="mr-1.5 h-4 w-4" />Tổng quan</TabsTrigger>
           <TabsTrigger value="members"><Users className="mr-1.5 h-4 w-4" />Thành viên</TabsTrigger>
+          <TabsTrigger value="topups"><Wallet className="mr-1.5 h-4 w-4" />Nạp điểm</TabsTrigger>
+          <TabsTrigger value="pricing"><Coins className="mr-1.5 h-4 w-4" />Giá điểm</TabsTrigger>
           <TabsTrigger value="history"><History className="mr-1.5 h-4 w-4" />Lịch sử lá số</TabsTrigger>
           <TabsTrigger value="info"><Info className="mr-1.5 h-4 w-4" />Thông tin</TabsTrigger>
           <TabsTrigger value="settings"><SettingsIcon className="mr-1.5 h-4 w-4" />Cài đặt</TabsTrigger>
         </TabsList>
         <TabsContent value="dashboard"><Dashboard /></TabsContent>
         <TabsContent value="members"><MembersPanel /></TabsContent>
+        <TabsContent value="topups"><TopupsPanel /></TabsContent>
+        <TabsContent value="pricing"><PricingPanel /></TabsContent>
         <TabsContent value="history"><HistoryPanel /></TabsContent>
         <TabsContent value="info"><InfoPanel /></TabsContent>
         <TabsContent value="settings"><SettingsPanel /></TabsContent>
@@ -508,6 +513,154 @@ function InfoPanel() {
             <Save className="mr-1.5 h-4 w-4" />{saving ? "Đang lưu…" : "Lưu thông tin"}
           </Button>
         </div>
+      </div>
+    </Card>
+  );
+}
+
+/* ─── PRICING (giá điểm từng mục) ─── */
+function PricingPanel() {
+  const [costs, setCosts] = useState<Record<string, number> | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => { fetchCosts().then(setCosts); }, []);
+
+  const update = (key: string, value: string) => {
+    const n = Math.max(0, Math.floor(Number(value) || 0));
+    setCosts((c) => ({ ...(c ?? {}), [key]: n }));
+  };
+
+  const onSave = async () => {
+    if (!costs) return;
+    setSaving(true);
+    try { await saveCosts(costs); toast.success("Đã lưu bảng giá"); }
+    catch (e) { toast.error(e instanceof Error ? e.message : "Lỗi lưu"); }
+    finally { setSaving(false); }
+  };
+
+  const onResetDefaults = () => setCosts({ ...DEFAULT_COSTS });
+
+  if (!costs) return <Card className="glass-card p-6">Đang tải bảng giá…</Card>;
+
+  return (
+    <Card className="glass-card p-6 shadow-elegant">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <Coins className="h-5 w-5 text-amber-600" />
+          <h3 className="font-display text-lg font-semibold">Bảng giá điểm cho từng mục luận giải</h3>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={onResetDefaults}>Khôi phục mặc định</Button>
+          <Button onClick={onSave} disabled={saving} className="gradient-primary text-primary-foreground">
+            <Save className="mr-1.5 h-4 w-4" />{saving ? "Đang lưu…" : "Lưu bảng giá"}
+          </Button>
+        </div>
+      </div>
+      <p className="mb-4 text-xs text-muted-foreground">
+        Đặt số điểm cần trừ khi người dùng sử dụng từng tính năng. Đặt <strong>0</strong> để miễn phí.
+      </p>
+      <div className="grid gap-3 sm:grid-cols-2">
+        {COST_KEYS.map((c) => (
+          <div key={c.key} className="flex items-center gap-3 rounded-lg border border-border/60 bg-background/40 p-3">
+            <div className="min-w-0 flex-1">
+              <div className="truncate text-sm font-medium">{c.label}</div>
+              <div className="text-xs text-muted-foreground">{c.key}</div>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Input
+                type="number"
+                min={0}
+                step={100}
+                value={costs[c.key] ?? 0}
+                onChange={(e) => update(c.key, e.target.value)}
+                className="w-28 text-right font-display font-semibold"
+              />
+              <span className="text-xs text-muted-foreground">điểm</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </Card>
+  );
+}
+
+/* ─── TOPUPS (duyệt nạp điểm) ─── */
+type Topup = { id: string; user_id: string; amount_points: number; amount_vnd: number; status: string; note: string | null; created_at: string };
+
+function TopupsPanel() {
+  const [rows, setRows] = useState<Topup[] | null>(null);
+  const [filter, setFilter] = useState<"pending" | "all">("pending");
+
+  const load = () => {
+    let q = supabase.from("topup_requests").select("*").order("created_at", { ascending: false });
+    if (filter === "pending") q = q.eq("status", "pending");
+    q.then(({ data, error }) => { if (error) toast.error(error.message); setRows((data as Topup[]) ?? []); });
+  };
+  useEffect(load, [filter]);
+
+  const approve = async (id: string) => {
+    const { error } = await supabase.rpc("approve_topup", { _id: id });
+    if (error) return toast.error(error.message);
+    toast.success("Đã duyệt nạp điểm");
+    load();
+  };
+  const reject = async (id: string) => {
+    const { error } = await supabase.rpc("reject_topup", { _id: id });
+    if (error) return toast.error(error.message);
+    toast.success("Đã từ chối");
+    load();
+  };
+
+  if (!rows) return <Card className="glass-card p-6">Đang tải…</Card>;
+  return (
+    <Card className="glass-card p-6 shadow-elegant">
+      <div className="mb-3 flex items-center justify-between">
+        <h3 className="font-display text-lg font-semibold">Yêu cầu nạp điểm ({rows.length})</h3>
+        <div className="inline-flex rounded-md border border-border/60">
+          {(["pending", "all"] as const).map((f) => (
+            <button key={f} onClick={() => setFilter(f)} className={`px-3 py-1.5 text-xs font-semibold ${filter === f ? "bg-primary text-primary-foreground" : "hover:bg-accent"}`}>
+              {f === "pending" ? "Chờ duyệt" : "Tất cả"}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="overflow-auto rounded-md border border-border/60">
+        <table className="w-full text-sm">
+          <thead className="bg-accent/40 font-display"><tr>
+            <th className="px-3 py-2 text-left">Thời gian</th>
+            <th className="px-3 py-2 text-left">User</th>
+            <th className="px-3 py-2 text-right">Điểm</th>
+            <th className="px-3 py-2 text-right">VNĐ</th>
+            <th className="px-3 py-2 text-left">Ghi chú</th>
+            <th className="px-3 py-2 text-left">Trạng thái</th>
+            <th className="px-3 py-2 text-right">Thao tác</th>
+          </tr></thead>
+          <tbody>
+            {rows.map((r) => (
+              <tr key={r.id} className="border-t border-border/60 odd:bg-background/40">
+                <td className="px-3 py-2 text-xs">{new Date(r.created_at).toLocaleString("vi-VN")}</td>
+                <td className="px-3 py-2 font-mono text-xs">{r.user_id.slice(0, 8)}…</td>
+                <td className="px-3 py-2 text-right font-display font-bold text-amber-700">{r.amount_points.toLocaleString("vi-VN")}</td>
+                <td className="px-3 py-2 text-right">{r.amount_vnd.toLocaleString("vi-VN")}đ</td>
+                <td className="px-3 py-2 text-xs">{r.note || "—"}</td>
+                <td className="px-3 py-2">
+                  {r.status === "pending" && <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-xs text-amber-700">Chờ</span>}
+                  {r.status === "approved" && <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs text-emerald-700">Đã duyệt</span>}
+                  {r.status === "rejected" && <span className="rounded-full bg-rose-500/15 px-2 py-0.5 text-xs text-rose-700">Từ chối</span>}
+                </td>
+                <td className="px-3 py-2 text-right">
+                  {r.status === "pending" && (
+                    <>
+                      <Button size="sm" variant="default" className="mr-1 gradient-primary text-primary-foreground" onClick={() => approve(r.id)}>Duyệt</Button>
+                      <Button size="sm" variant="outline" onClick={() => reject(r.id)}>Từ chối</Button>
+                    </>
+                  )}
+                </td>
+              </tr>
+            ))}
+            {rows.length === 0 && <tr><td colSpan={7} className="px-3 py-6 text-center text-muted-foreground">Không có yêu cầu nào.</td></tr>}
+          </tbody>
+        </table>
       </div>
     </Card>
   );

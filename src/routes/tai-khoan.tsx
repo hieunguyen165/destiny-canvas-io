@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { UserCircle, Save, History, Trash2, Eye, Loader2, Coins, Sparkles } from "lucide-react";
+import { UserCircle, Save, History, Trash2, Eye, Loader2, Coins, Sparkles, Shield } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
-import { useMyPoints } from "@/lib/admin";
+import { useMyPoints, useIsAdmin } from "@/lib/admin";
 
 export const Route = createFileRoute("/tai-khoan")({
   head: () => ({ meta: [{ title: "Tài khoản — Hệ Thống Thần Cơ" }] }),
@@ -52,6 +52,8 @@ function TaiKhoanPage() {
         </div>
       </div>
 
+      <AdminAccessCard />
+
       <PointsCard />
 
       <Tabs defaultValue="profile">
@@ -65,6 +67,27 @@ function TaiKhoanPage() {
         <TabsContent value="points"><PointsHistoryPanel /></TabsContent>
       </Tabs>
     </div>
+  );
+}
+
+function AdminAccessCard() {
+  const { isAdmin, loading } = useIsAdmin();
+  if (loading || !isAdmin) return null;
+  return (
+    <Card className="glass-card mb-4 flex flex-wrap items-center justify-between gap-3 border-primary/30 p-5 shadow-elegant">
+      <div className="flex items-center gap-3">
+        <div className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-soft">
+          <Shield className="h-5 w-5" />
+        </div>
+        <div>
+          <div className="font-display text-base font-semibold">Khu Quản Trị</div>
+          <p className="text-xs text-muted-foreground">Bạn có quyền quản trị hệ thống.</p>
+        </div>
+      </div>
+      <Button asChild className="gradient-primary text-primary-foreground shadow-elegant">
+        <Link to="/admin"><Shield className="mr-1.5 h-4 w-4" />Truy cập trang quản trị</Link>
+      </Button>
+    </Card>
   );
 }
 
@@ -86,8 +109,9 @@ function PointsCard() {
             <div className="text-xs text-muted-foreground">1 lần luận chi tiết = 2.000 điểm</div>
           </div>
         </div>
-        <Button onClick={() => toast.info("Tính năng nạp điểm đang được phát triển. Vui lòng liên hệ admin để được cộng điểm.")} className="gradient-primary text-primary-foreground shadow-elegant">
-          <Sparkles className="mr-1.5 h-4 w-4" />Nạp điểm</Button>
+        <Button asChild className="gradient-primary text-primary-foreground shadow-elegant">
+          <Link to="/nap-diem"><Sparkles className="mr-1.5 h-4 w-4" />Nạp điểm</Link>
+        </Button>
       </div>
     </Card>
   );
