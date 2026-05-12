@@ -423,3 +423,76 @@ function HistoryPanel() {
     </Card>
   );
 }
+
+/* ─── INFO (footer/website info) ─── */
+const FOOTER_KEYS = ["footer_about", "footer_note", "footer_copyright", "footer_contact"];
+
+function InfoPanel() {
+  const current = useAppSettings(FOOTER_KEYS);
+  const [about, setAbout] = useState("");
+  const [note, setNote] = useState("");
+  const [copyright, setCopyright] = useState("");
+  const [contact, setContact] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setAbout(current.footer_about ?? "");
+    setNote(current.footer_note ?? "");
+    setCopyright(current.footer_copyright ?? "");
+    setContact(current.footer_contact ?? "");
+  }, [current.footer_about, current.footer_note, current.footer_copyright, current.footer_contact]);
+
+  const onSave = async () => {
+    setSaving(true);
+    try {
+      await Promise.all([
+        setAppSetting("footer_about", about),
+        setAppSetting("footer_note", note),
+        setAppSetting("footer_copyright", copyright),
+        setAppSetting("footer_contact", contact),
+      ]);
+      toast.success("Đã lưu thông tin website");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Lỗi lưu");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Card className="glass-card p-6 shadow-elegant">
+      <div className="mb-4 flex items-center gap-2">
+        <Info className="h-5 w-5 text-primary" />
+        <h3 className="font-display text-lg font-semibold">Thông tin Footer & Website</h3>
+      </div>
+      <p className="mb-5 text-xs text-muted-foreground">
+        Nội dung dưới đây hiển thị ở chân trang (footer) trên toàn bộ website. Thay đổi sẽ tự động cập nhật cho mọi khách truy cập.
+      </p>
+
+      <div className="space-y-5">
+        <div>
+          <Label className="mb-1.5 block text-sm font-semibold">Giới thiệu (cột trái footer)</Label>
+          <Textarea rows={3} value={about} onChange={(e) => setAbout(e.target.value)} placeholder="Tinh hoa tử vi cổ truyền — soi tỏ vận mệnh…" />
+        </div>
+        <div>
+          <Label className="mb-1.5 block text-sm font-semibold">Thông tin liên hệ (tuỳ chọn)</Label>
+          <Textarea rows={3} value={contact} onChange={(e) => setContact(e.target.value)} placeholder="Hotline: 09xx xxx xxx&#10;Email: contact@hethongthanco.vn" />
+        </div>
+        <div>
+          <Label className="mb-1.5 block text-sm font-semibold">Lưu ý (cột phải footer)</Label>
+          <Textarea rows={3} value={note} onChange={(e) => setNote(e.target.value)} placeholder="Mọi luận giải mang tính tham khảo…" />
+        </div>
+        <div>
+          <Label className="mb-1.5 block text-sm font-semibold">Dòng bản quyền</Label>
+          <Input value={copyright} onChange={(e) => setCopyright(e.target.value)} placeholder={`© ${new Date().getFullYear()} Hệ Thống Thần Cơ…`} />
+        </div>
+
+        <div className="flex gap-2 pt-1">
+          <Button onClick={onSave} disabled={saving} className="gradient-primary text-primary-foreground">
+            <Save className="mr-1.5 h-4 w-4" />{saving ? "Đang lưu…" : "Lưu thông tin"}
+          </Button>
+        </div>
+      </div>
+    </Card>
+  );
+}
