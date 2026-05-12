@@ -18,7 +18,7 @@ async function runViaGateway(prompt: string): Promise<string> {
   return text;
 }
 
-const BEEKNOEE_MODELS = ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-2.0-flash"];
+const BEEKNOEE_MODELS = ["gemini-2.5-flash-lite", "gemini-2.5-flash", "gemini-2.0-flash"];
 
 async function runViaBeeknoee(prompt: string, key: string): Promise<string> {
   let lastErr = "";
