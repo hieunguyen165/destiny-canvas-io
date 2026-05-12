@@ -75,9 +75,10 @@ function TuViPage() {
     mutationFn: (vars: Vars) => lapLaSoFn({ data: vars }),
     onSuccess: async (res, vars) => {
       const { data: u } = await supabase.auth.getUser();
-      if (u.user && res?.data) {
+      if (res?.data) {
         await supabase.from("la_so_history").insert({
-          user_id: u.user.id,
+          user_id: u.user?.id ?? null,
+          guest_name: u.user ? null : vars.hoTen,
           ho_ten: vars.hoTen,
           input: vars,
           result: res.data,
