@@ -417,6 +417,7 @@ const lichAmSchema = z.object({
 });
 
 export const doiLich = createServerFn({ method: "POST" })
+  .middleware([attachAuthHeader, requireSupabaseAuth])
   .inputValidator((d: unknown) => lichAmSchema.parse(d))
   .handler(async ({ data }) => {
     const huong = data.chieu === "d2a" ? "Dương lịch sang Âm lịch" : "Âm lịch sang Dương lịch";
