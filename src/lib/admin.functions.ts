@@ -1,22 +1,35 @@
-import { createServerFn } from "@tanstack/react-start";
+import { createServerFn, createMiddleware } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { supabase } from "@/integrations/supabase/client";
+
+/** Client middleware: gắn JWT của user hiện tại vào header Authorization
+ *  để server-side requireSupabaseAuth nhận được token. */
+const attachAuthHeader = createMiddleware({ type: "function" }).client(async ({ next }) => {
+  const headers: Record<string, string> = {};
+  try {
+    if (typeof window !== "undefined") {
+      const { data } = await supabase.auth.getSession();
+      const token = data.session?.access_token;
+      if (token) headers.authorization = `Bearer ${token}`;
+    }
+  } catch {
+    // ignore
+  }
+  return next({ headers });
+});
 
 /**
- * Server-side admin check. Sử dụng requireSupabaseAuth để xác thực JWT,
- * sau đó kiểm tra role 'admin' trong bảng user_roles bằng client đã có session.
- * Trả về { isAdmin: boolean } — không bao giờ throw redirect ở đây để loader
- * có thể tự xử lý.
+ * Server-side admin check. Yêu cầu JWT hợp lệ; trả { isAdmin: boolean }.
  */
 export const checkIsAdmin = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  .middleware([attachAuthHeader, requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { supabase, userId } = context as { supabase: any; userId: string };
-    const { data, error } = await supabase
+    const ctx = context as { supabase: any; userId: string };
+    const { data } = await ctx.supabase
       .from("user_roles")
       .select("role")
-      .eq("user_id", userId)
+      .eq("user_id", ctx.userId)
       .eq("role", "admin")
       .maybeSingle();
-    if (error) return { isAdmin: false };
     return { isAdmin: !!data };
   });
