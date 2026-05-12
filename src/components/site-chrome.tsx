@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { Compass, LogIn, UserPlus, LogOut, Menu, X, Shield, UserCircle } from "lucide-react";
+import { Sparkles, LogIn, UserPlus, LogOut, Menu, X, Shield, UserCircle, Coins } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { useIsAdmin } from "@/lib/admin";
+import { useIsAdmin, useMyPoints } from "@/lib/admin";
 import { cn } from "@/lib/utils";
 
 const NAV = [
-  { to: "/", label: "Tử Vi" },
+  { to: "/", label: "Trang Chủ" },
+  { to: "/tu-vi", label: "Tử Vi" },
   { to: "/van-menh", label: "Vận Mệnh" },
   { to: "/hoang-dao", label: "Hoàng Đạo" },
   { to: "/lich-am", label: "Lịch Âm" },
@@ -20,6 +21,7 @@ export function SiteHeader() {
   const navigate = useNavigate();
   const path = useRouterState({ select: (s) => s.location.pathname });
   const { isAdmin } = useIsAdmin();
+  const points = useMyPoints();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setEmail(data.session?.user.email ?? null));
@@ -36,11 +38,11 @@ export function SiteHeader() {
     <header className="sticky top-0 z-40 border-b border-border/40 bg-background/70 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
         <Link to="/" className="flex items-center gap-2 font-display text-xl font-semibold">
-          <Compass className="h-5 w-5 text-primary" />
-          <span className="text-gradient">Diễn Cẩm Tam Thế</span>
+          <Sparkles className="h-5 w-5 text-primary" />
+          <span className="text-gradient">Hệ Thống Thần Cơ</span>
         </Link>
 
-        <nav className="hidden items-center gap-1 md:flex">
+        <nav className="hidden items-center gap-1 lg:flex">
           {NAV.map((item) => {
             const active = item.to === "/" ? path === "/" : path.startsWith(item.to);
             return (
@@ -58,7 +60,12 @@ export function SiteHeader() {
           })}
         </nav>
 
-        <div className="hidden items-center gap-2 md:flex">
+        <div className="hidden items-center gap-2 lg:flex">
+          {email && points !== null && (
+            <Link to="/tai-khoan" className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-700 hover:bg-amber-500/20">
+              <Coins className="h-3.5 w-3.5" /> {points.toLocaleString("vi-VN")} điểm
+            </Link>
+          )}
           {isAdmin && (
             <Button variant="default" size="sm" asChild className="gradient-primary text-primary-foreground" title="Khu quản trị">
               <Link to="/admin"><Shield className="mr-1.5 h-4 w-4" />Admin</Link>
@@ -85,13 +92,13 @@ export function SiteHeader() {
           )}
         </div>
 
-        <button className="md:hidden" onClick={() => setOpen((v) => !v)} aria-label="menu">
+        <button className="lg:hidden" onClick={() => setOpen((v) => !v)} aria-label="menu">
           {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
       </div>
 
       {open && (
-        <div className="border-t border-border/40 bg-background/95 backdrop-blur md:hidden">
+        <div className="border-t border-border/40 bg-background/95 backdrop-blur lg:hidden">
           <div className="mx-auto flex max-w-7xl flex-col gap-1 px-4 py-3">
             {NAV.map((item) => (
               <Link
@@ -103,11 +110,26 @@ export function SiteHeader() {
                 {item.label}
               </Link>
             ))}
-            <div className="mt-2 flex gap-2 border-t border-border/40 pt-3">
-              {email ? (
-                <Button variant="outline" size="sm" onClick={onLogout} className="flex-1">
-                  <LogOut className="mr-1.5 h-4 w-4" /> Đăng xuất
+            <div className="mt-2 flex flex-wrap gap-2 border-t border-border/40 pt-3">
+              {email && points !== null && (
+                <Link to="/tai-khoan" onClick={() => setOpen(false)} className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-700">
+                  <Coins className="h-3.5 w-3.5" /> {points.toLocaleString("vi-VN")} điểm
+                </Link>
+              )}
+              {isAdmin && (
+                <Button size="sm" asChild className="gradient-primary text-primary-foreground">
+                  <Link to="/admin" onClick={() => setOpen(false)}><Shield className="mr-1.5 h-4 w-4" />Admin</Link>
                 </Button>
+              )}
+              {email ? (
+                <>
+                  <Button variant="outline" size="sm" asChild className="flex-1">
+                    <Link to="/tai-khoan" onClick={() => setOpen(false)}>Tài khoản</Link>
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={onLogout} className="flex-1">
+                    <LogOut className="mr-1.5 h-4 w-4" /> Đăng xuất
+                  </Button>
+                </>
               ) : (
                 <>
                   <Button variant="outline" size="sm" asChild className="flex-1">
@@ -132,11 +154,11 @@ export function SiteFooter() {
       <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 md:grid-cols-3">
         <div>
           <div className="flex items-center gap-2 font-display text-lg font-semibold">
-            <Compass className="h-4 w-4 text-primary" />
-            <span className="text-gradient">Diễn Cẩm Tam Thế</span>
+            <Sparkles className="h-4 w-4 text-primary" />
+            <span className="text-gradient">Hệ Thống Thần Cơ</span>
           </div>
           <p className="mt-2 text-sm text-muted-foreground">
-            Giải mã vận mệnh theo tinh hoa tử vi cổ truyền Việt Nam.
+            Trí tuệ cổ xưa kết hợp công nghệ AI — soi tỏ vận mệnh, đón lành tránh dữ.
           </p>
         </div>
         <div>
@@ -156,7 +178,7 @@ export function SiteFooter() {
         </div>
       </div>
       <div className="border-t border-border/40 py-4 text-center text-xs text-muted-foreground">
-        © {new Date().getFullYear()} Diễn Cẩm Tam Thế · Lấy cảm hứng văn hoá tử vi Việt Nam.
+        © {new Date().getFullYear()} Hệ Thống Thần Cơ · Trí tuệ cổ truyền · Công nghệ AI.
       </div>
     </footer>
   );
