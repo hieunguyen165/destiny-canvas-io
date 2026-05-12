@@ -8,30 +8,6 @@ import { attachAuthHeader } from "./attach-auth";
 
 const COST_LUAN_CHI_TIET = 2000;
 
-/** Server-side: trừ điểm cho user (bypass RLS bằng service role, tự kiểm số dư). */
-async function chargePoints(userId: string, amount: number, reason: string): Promise<void> {
-  // Atomic: chỉ update khi đủ điểm
-  const { data, error } = await supabaseAdmin
-    .from("profiles")
-    .update({ points: (await getPointsRaw(userId)) - amount } as never)
-    .eq("id", userId)
-    .gte("points", amount)
-    .select("points")
-    .maybeSingle();
-  if (error) throw new Error(error.message);
-  if (!data) throw new Error("insufficient_points");
-  await supabaseAdmin.from("points_transactions").insert({
-    user_id: userId,
-    amount: -amount,
-    reason,
-    created_by: userId,
-  });
-}
-async function getPointsRaw(userId: string): Promise<number> {
-  const { data } = await supabaseAdmin.from("profiles").select("points").eq("id", userId).maybeSingle();
-  return data?.points ?? 0;
-}
-
 /** Đọc khoá AI dùng chung từ app_settings (chỉ chạy trên server, dùng service role để bỏ qua RLS). */
 async function getSharedAiKey(): Promise<string | undefined> {
   try {
