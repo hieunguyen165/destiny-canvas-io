@@ -254,10 +254,14 @@ Tóm lược ban đầu (để mở rộng, không lặp y nguyên):
 """${data.tomTat}"""
 
 Hãy viết LUẬN GIẢI CHUYÊN SÂU bằng tiếng Việt, MARKDOWN, gồm các phần:
-## 🔮 Căn Nguyên (gốc rễ vận số ở mục này, tham chiếu can chi - ngũ hành - cung sao, 3-4 câu)
-## 📜 Diễn Giải Chi Tiết (4-6 câu phân tích cặn kẽ ý nghĩa, biểu hiện cụ thể trong đời sống)
-## ⚖️ Thuận & Nghịch (2 câu thuận, 2 câu nghịch nên tránh)
-## 🌿 Lời Khuyên (3-4 gạch đầu dòng cụ thể, hành động được)
+## Căn Nguyên
+(gốc rễ vận số ở mục này, tham chiếu can chi - ngũ hành - cung sao, 3-4 câu)
+## Diễn Giải Chi Tiết
+(4-6 câu phân tích cặn kẽ ý nghĩa, biểu hiện cụ thể trong đời sống)
+## Thuận & Nghịch
+(2 câu thuận, 2 câu nghịch nên tránh)
+## Lời Khuyên
+(3-4 gạch đầu dòng cụ thể, hành động được)
 
 Văn phong tử vi cổ truyền, súc tích nhưng sâu, không lan man.`,
       data.geminiKey,
