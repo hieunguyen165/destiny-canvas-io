@@ -66,11 +66,6 @@ export function SiteHeader() {
               <Coins className="h-3.5 w-3.5" /> {points.toLocaleString("vi-VN")} điểm
             </Link>
           )}
-          {isAdmin && (
-            <Button variant="default" size="sm" asChild className="gradient-primary text-primary-foreground" title="Khu quản trị">
-              <Link to="/admin"><Shield className="mr-1.5 h-4 w-4" />Admin</Link>
-            </Button>
-          )}
           {email ? (
             <>
               <Button variant="ghost" size="sm" asChild>
