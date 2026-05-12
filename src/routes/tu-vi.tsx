@@ -289,16 +289,20 @@ function SectionBox({
   );
 }
 
+const COST_LUAN_CHI_TIET = 2000;
+
 function DeepDive({ muc, tomTat, kq }: { muc: string; tomTat: string; kq: KetQuaLaSo }) {
   const luanSauFn = useServerFn(luanSau);
   const geminiKey = useGeminiKey();
+  const points = useMyPoints();
   const [open, setOpen] = useState(false);
   const m = useMutation({
-    mutationFn: () =>
-      luanSauFn({
+    mutationFn: async () => {
+      // Trừ điểm trước, nếu thất bại sẽ throw
+      await spendPoints(COST_LUAN_CHI_TIET, `Luận chi tiết: ${muc}`);
+      return luanSauFn({
         data: {
-          muc,
-          tomTat,
+          muc, tomTat,
           thongTin: {
             hoTen: kq.thongTinCoBan.hoTen,
             gioiTinh: kq.thongTinCoBan.gioiTinh,
@@ -310,12 +314,25 @@ function DeepDive({ muc, tomTat, kq }: { muc: string; tomTat: string; kq: KetQua
           },
           geminiKey,
         },
-      }),
-    onError: (e) => toast.error(e instanceof Error ? e.message : "Không truy được tàng thư, mời thử lại."),
+      });
+    },
+    onError: (e) => {
+      const msg = e instanceof Error ? e.message : "";
+      if (msg.includes("insufficient_points")) toast.error(`Không đủ điểm! Cần ${COST_LUAN_CHI_TIET.toLocaleString("vi-VN")} điểm cho mỗi lần luận chi tiết.`);
+      else if (msg.includes("unauthorized")) toast.error("Vui lòng đăng nhập để dùng tính năng nâng cao.");
+      else toast.error(msg || "Không truy được tàng thư, mời thử lại.");
+    },
   });
 
+  const isGuest = points === null;
+  const notEnough = points !== null && points < COST_LUAN_CHI_TIET;
+
   const handleClick = () => {
-    if (!open && !m.data && !m.isPending) m.mutate();
+    if (isGuest) { toast.error("Vui lòng đăng nhập để dùng Luận Chi Tiết (2.000 điểm/lần)."); return; }
+    if (!open && !m.data && !m.isPending) {
+      if (notEnough) { toast.error(`Không đủ điểm! Cần ${COST_LUAN_CHI_TIET.toLocaleString("vi-VN")} điểm.`); return; }
+      m.mutate();
+    }
     setOpen((v) => !v);
   };
 
@@ -325,13 +342,19 @@ function DeepDive({ muc, tomTat, kq }: { muc: string; tomTat: string; kq: KetQua
         type="button"
         onClick={handleClick}
         disabled={m.isPending}
-        className="group inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/5 px-3 py-1.5 text-xs font-semibold text-primary transition-all hover:bg-primary/10 disabled:opacity-60"
+        className={cn(
+          "group inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all disabled:opacity-60",
+          isGuest || notEnough
+            ? "border-amber-500/40 bg-amber-500/10 text-amber-700 hover:bg-amber-500/20"
+            : "border-primary/30 bg-primary/5 text-primary hover:bg-primary/10",
+        )}
+        title={isGuest ? "Đăng nhập để dùng" : `Tốn ${COST_LUAN_CHI_TIET.toLocaleString("vi-VN")} điểm/lần`}
       >
         {m.isPending ? (
           <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Đang luận sâu…</>
         ) : (
           <>
-            {open ? "Thu gọn" : m.data ? "Xem lại Luận Chi Tiết" : "Luận Chi Tiết"}
+            {open ? "Thu gọn" : m.data ? "Xem lại Luận Chi Tiết" : `Luận Chi Tiết · ${COST_LUAN_CHI_TIET.toLocaleString("vi-VN")} điểm`}
             <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", open && "rotate-180")} />
           </>
         )}
