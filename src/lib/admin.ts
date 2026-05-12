@@ -29,6 +29,45 @@ async function fetchKey(): Promise<string | undefined> {
   return data?.value || undefined;
 }
 
+/** Lưu/đọc nhiều khoá cấu hình footer/thông tin web (chỉ admin mới ghi được nhờ RLS). */
+export async function setAppSetting(key: string, value: string) {
+  const trimmed = value;
+  const { data: u } = await supabase.auth.getUser();
+  const { error } = await supabase
+    .from("app_settings")
+    .upsert({ key, value: trimmed, updated_by: u.user?.id, updated_at: new Date().toISOString() });
+  if (error) throw error;
+  if (typeof window !== "undefined") window.dispatchEvent(new Event(EVT));
+}
+
+export function useAppSettings(keys: string[]) {
+  const [vals, setVals] = useState<Record<string, string>>({});
+  useEffect(() => {
+    let cancel = false;
+    const load = async () => {
+      const { data } = await supabase.from("app_settings").select("key,value").in("key", keys);
+      if (cancel) return;
+      const out: Record<string, string> = {};
+      (data ?? []).forEach((r: { key: string; value: string | null }) => { out[r.key] = r.value ?? ""; });
+      setVals(out);
+    };
+    load();
+    const onLocal = () => load();
+    if (typeof window !== "undefined") window.addEventListener(EVT, onLocal);
+    const channel = supabase
+      .channel("app_settings-multi-sync-" + keys.join("_"))
+      .on("postgres_changes", { event: "*", schema: "public", table: "app_settings" }, () => load())
+      .subscribe();
+    return () => {
+      cancel = true;
+      if (typeof window !== "undefined") window.removeEventListener(EVT, onLocal);
+      supabase.removeChannel(channel);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [keys.join(",")]);
+  return vals;
+}
+
 /** Hook: trả khoá Gemini dùng chung từ DB, tự đồng bộ realtime khi admin đổi. */
 export function useGeminiKey() {
   const [v, setV] = useState<string | undefined>(undefined);

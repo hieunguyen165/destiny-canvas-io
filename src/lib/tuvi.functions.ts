@@ -13,36 +13,47 @@ function getModel() {
   return createLovableAiGatewayProvider(key)(MODEL);
 }
 
+async function runViaGateway(prompt: string): Promise<string> {
+  const { text } = await generateText({ model: getModel(), prompt, maxOutputTokens: 8192 });
+  return text;
+}
+
 async function runText(prompt: string, geminiKey?: string): Promise<string> {
   if (geminiKey && geminiKey.trim()) {
     const key = geminiKey.trim();
     let lastErr = "";
     for (const model of GEMINI_DIRECT_MODELS) {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(key)}`;
-      const res = await fetch(url, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { maxOutputTokens: 8192, temperature: 0.7 },
-        }),
-      });
-      if (res.ok) {
-        const j = (await res.json()) as { candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }> };
-        const text = j.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("") ?? "";
-        if (text) return text;
-        lastErr = "Gemini không trả về nội dung";
-        continue;
+      try {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(key)}`;
+        const res = await fetch(url, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: { maxOutputTokens: 8192, temperature: 0.7 },
+          }),
+        });
+        if (res.ok) {
+          const j = (await res.json()) as { candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }> };
+          const text = j.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("") ?? "";
+          if (text) return text;
+          lastErr = "Gemini không trả về nội dung";
+          continue;
+        }
+        const body = await res.text();
+        lastErr = `Gemini ${model} ${res.status}: ${body.slice(0, 200)}`;
+      } catch (e) {
+        lastErr = e instanceof Error ? e.message : String(e);
       }
-      const body = await res.text();
-      lastErr = `Gemini ${model} ${res.status}: ${body.slice(0, 200)}`;
-      // 429/503: thử model kế tiếp; lỗi khác (401/400) thì dừng
-      if (res.status !== 429 && res.status !== 503) break;
     }
-    throw new Error(`API key của bạn bị giới hạn quota. ${lastErr}. Hãy thử lại sau hoặc nâng cấp gói Gemini.`);
+    // Direct Gemini hỏng → fallback sang Lovable AI Gateway để không gãy luồng người dùng
+    try {
+      return await runViaGateway(prompt);
+    } catch {
+      throw new Error(`Không gọi được AI. ${lastErr}`);
+    }
   }
-  const { text } = await generateText({ model: getModel(), prompt });
-  return text;
+  return runViaGateway(prompt);
 }
 
 const optKey = z.string().optional();
@@ -243,10 +254,14 @@ Tóm lược ban đầu (để mở rộng, không lặp y nguyên):
 """${data.tomTat}"""
 
 Hãy viết LUẬN GIẢI CHUYÊN SÂU bằng tiếng Việt, MARKDOWN, gồm các phần:
-## 🔮 Căn Nguyên (gốc rễ vận số ở mục này, tham chiếu can chi - ngũ hành - cung sao, 3-4 câu)
-## 📜 Diễn Giải Chi Tiết (4-6 câu phân tích cặn kẽ ý nghĩa, biểu hiện cụ thể trong đời sống)
-## ⚖️ Thuận & Nghịch (2 câu thuận, 2 câu nghịch nên tránh)
-## 🌿 Lời Khuyên (3-4 gạch đầu dòng cụ thể, hành động được)
+## Căn Nguyên
+(gốc rễ vận số ở mục này, tham chiếu can chi - ngũ hành - cung sao, 3-4 câu)
+## Diễn Giải Chi Tiết
+(4-6 câu phân tích cặn kẽ ý nghĩa, biểu hiện cụ thể trong đời sống)
+## Thuận & Nghịch
+(2 câu thuận, 2 câu nghịch nên tránh)
+## Lời Khuyên
+(3-4 gạch đầu dòng cụ thể, hành động được)
 
 Văn phong tử vi cổ truyền, súc tích nhưng sâu, không lan man.`,
       data.geminiKey,
@@ -266,7 +281,7 @@ export const vanMenh = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const text = await runText(
       `Luận giải vận mệnh năm ${data.nam} cho người tuổi ${data.conGiap} bằng tiếng Việt, văn phong tử vi cổ truyền.
-Trả về MARKDOWN với các phần: ## 🌟 Tổng Quan, ## 💰 Tài Lộc, ## 💼 Công Việc, ## ❤️ Tình Duyên, ## 🌿 Sức Khoẻ, ## ⚠️ Lưu Ý, ## 🎨 Màu & Số May Mắn. Mỗi phần 2-3 câu súc tích.`,
+Trả về MARKDOWN với các phần: ## Tổng Quan, ## Tài Lộc, ## Công Việc, ## Tình Duyên, ## Sức Khoẻ, ## Lưu Ý, ## Màu & Số May Mắn. Mỗi phần 2-3 câu súc tích.`,
       data.geminiKey,
     );
     return { ok: true as const, content: text };
@@ -279,7 +294,7 @@ export const luanCungHoangDao = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const text = await runText(
       `Tử vi tuần này cho cung hoàng đạo ${data.cung} (phương Tây), bằng tiếng Việt.
-Markdown gồm: ## ✨ Tổng Quan Tuần, ## 💼 Sự Nghiệp, ## 💰 Tài Chính, ## ❤️ Tình Yêu, ## 🌿 Sức Khoẻ, ## 🍀 Lời Khuyên. Mỗi phần 2-3 câu.`,
+Markdown gồm: ## Tổng Quan Tuần, ## Sự Nghiệp, ## Tài Chính, ## Tình Yêu, ## Sức Khoẻ, ## Lời Khuyên. Mỗi phần 2-3 câu.`,
       data.geminiKey,
     );
     return { ok: true as const, content: text };
@@ -299,7 +314,7 @@ export const ngayTot = createServerFn({ method: "POST" })
       `Liệt kê 5-8 ngày tốt trong tháng ${data.thang}/${data.nam} (dương lịch) phù hợp cho việc "${data.loaiViec}" theo lịch can chi Việt Nam.
 Trả về MARKDOWN dạng bảng:
 | Ngày dương | Ngày âm | Can Chi | Giờ tốt | Lý do |
-Sau bảng thêm phần ## ⚠️ Ngày Cần Tránh (1-2 ngày xấu) và ## 🌿 Lời Khuyên (2 câu).`,
+Sau bảng thêm phần ## Ngày Cần Tránh (1-2 ngày xấu) và ## Lời Khuyên (2 câu).`,
       data.geminiKey,
     );
     return { ok: true as const, content: text };

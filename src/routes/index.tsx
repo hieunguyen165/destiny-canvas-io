@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Sparkles, Compass, Calendar, Star, Heart, Phone, Hash, CalendarDays, ArrowRight, Shield, Cpu, BookOpen } from "lucide-react";
+import { Sparkles, Compass, Calendar, Star, Heart, Phone, Hash, CalendarDays, ArrowRight, Shield, Scroll, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import heroBg from "@/assets/hero-bg.jpg";
@@ -18,7 +18,7 @@ export const Route = createFileRoute("/")({
 
 const TOOLS = [
   { to: "/tu-vi", label: "Tử Vi Đẩu Số", desc: "Lập lá số 12 cung, luận giải 14 mục vận mệnh", icon: Compass, color: "from-rose-500/20 to-pink-500/10" },
-  { to: "/van-menh", label: "Luận Vận Mệnh", desc: "AI phân tích vận hạn, sự nghiệp, tình duyên", icon: Sparkles, color: "from-purple-500/20 to-indigo-500/10" },
+  { to: "/van-menh", label: "Luận Vận Mệnh", desc: "Phân tích vận hạn, sự nghiệp, tình duyên theo năm", icon: Sparkles, color: "from-purple-500/20 to-indigo-500/10" },
   { to: "/hoang-dao", label: "Cung Hoàng Đạo", desc: "Tử vi tuần — 12 cung phương Tây", icon: Star, color: "from-amber-500/20 to-yellow-500/10" },
   { to: "/lich-am", label: "Lịch Âm", desc: "Đổi lịch âm — dương, can chi, tiết khí", icon: Calendar, color: "from-emerald-500/20 to-teal-500/10" },
   { to: "/ngay-tot", label: "Xem Ngày Tốt", desc: "Tìm ngày hoàng đạo cho việc đại sự", icon: CalendarDays, color: "from-cyan-500/20 to-sky-500/10" },
@@ -29,7 +29,7 @@ const TOOLS = [
 
 const FEATURES = [
   { icon: BookOpen, title: "Tinh Hoa Cổ Truyền", desc: "Kế thừa thuật toán Tử Vi Đẩu Số và phương pháp Diễn Cẩm Tam Thế hàng nghìn năm." },
-  { icon: Cpu, title: "AI Luận Giải Sâu", desc: "Trí tuệ nhân tạo hiện đại đọc hiểu can chi, sao chiếu, đại tiểu hạn của bạn." },
+  { icon: Scroll, title: "Luận Giải Chuyên Sâu", desc: "Hệ thống đọc hiểu can chi, sao chiếu, đại tiểu hạn — luận giải chi tiết theo từng cung." },
   { icon: Shield, title: "Riêng Tư & An Toàn", desc: "Thông tin của bạn được mã hoá và bảo mật tuyệt đối, không chia sẻ cho bên thứ ba." },
 ];
 
@@ -49,16 +49,15 @@ function HomePage() {
 
         <div className="mx-auto max-w-5xl px-4 pt-16 pb-10 text-center sm:px-6 sm:pt-24">
           <div className="inline-flex animate-fade-in items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium text-primary">
-            <Sparkles className="h-3 w-3" /> Trí tuệ cổ xưa & Công nghệ AI
+            <Sparkles className="h-3 w-3" /> Tinh hoa tử vi cổ truyền Việt Nam
           </div>
           <h1 className="mt-6 animate-fade-in font-display text-4xl font-bold tracking-tight sm:text-6xl md:text-7xl">
             Khám Phá <span className="text-gradient">Vận Mệnh</span>
             <br />Của Bạn
           </h1>
           <p className="mx-auto mt-5 max-w-2xl animate-fade-in text-base text-muted-foreground sm:text-lg">
-            Sự kết hợp hoàn hảo giữa thuật toán <strong>Tử Vi Đẩu Số</strong> tinh hoa và{" "}
-            <strong>trí tuệ nhân tạo</strong> hiện đại giúp bạn thấu hiểu bản thân,
-            đón lành tránh dữ và làm chủ tương lai.
+            Hệ thống <strong>Tử Vi Đẩu Số</strong> theo phương pháp <strong>Diễn Cẩm Tam Thế</strong> cổ truyền,
+            giúp bạn thấu hiểu bản thân, đón lành tránh dữ và làm chủ tương lai.
           </p>
           <div className="mt-8 flex animate-fade-in flex-wrap justify-center gap-3">
             <Button asChild size="lg" className="gradient-primary text-primary-foreground shadow-elegant hover-scale">
@@ -76,7 +75,7 @@ function HomePage() {
           <div className="mt-12 grid grid-cols-3 gap-3 text-center sm:gap-6">
             <Stat k="14+" v="Mục vận mệnh" />
             <Stat k="12" v="Cung tử vi" />
-            <Stat k="AI" v="Luận giải sâu" />
+            <Stat k="14+" v="Mục luận giải" />
           </div>
         </div>
       </section>
