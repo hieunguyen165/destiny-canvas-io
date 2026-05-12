@@ -18,7 +18,7 @@ export const Route = createFileRoute("/")({
 
 const TOOLS = [
   { to: "/tu-vi", label: "Tử Vi Đẩu Số", desc: "Lập lá số 12 cung, luận giải 14 mục vận mệnh", icon: Compass, color: "from-rose-500/20 to-pink-500/10" },
-  { to: "/van-menh", label: "Luận Vận Mệnh", desc: "AI phân tích vận hạn, sự nghiệp, tình duyên", icon: Sparkles, color: "from-purple-500/20 to-indigo-500/10" },
+  { to: "/van-menh", label: "Luận Vận Mệnh", desc: "Phân tích vận hạn, sự nghiệp, tình duyên theo năm", icon: Sparkles, color: "from-purple-500/20 to-indigo-500/10" },
   { to: "/hoang-dao", label: "Cung Hoàng Đạo", desc: "Tử vi tuần — 12 cung phương Tây", icon: Star, color: "from-amber-500/20 to-yellow-500/10" },
   { to: "/lich-am", label: "Lịch Âm", desc: "Đổi lịch âm — dương, can chi, tiết khí", icon: Calendar, color: "from-emerald-500/20 to-teal-500/10" },
   { to: "/ngay-tot", label: "Xem Ngày Tốt", desc: "Tìm ngày hoàng đạo cho việc đại sự", icon: CalendarDays, color: "from-cyan-500/20 to-sky-500/10" },
