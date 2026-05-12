@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Shield, KeyRound, Save, Users, History, Settings as SettingsIcon, Trash2, Eye, LayoutDashboard, Coins, Plus, UserCircle, FileText, Sparkles, Info } from "lucide-react";
 import { toast } from "sonner";
@@ -10,9 +10,25 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { setGeminiKey, useGeminiKey, useIsAdmin, useAppSettings, setAppSetting } from "@/lib/admin";
+import { checkIsAdmin } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Quản trị — Hệ Thống Thần Cơ" }] }),
+  // Server-side guard: chỉ chạy trên client để tránh prerender 401.
+  beforeLoad: async () => {
+    if (typeof window === "undefined") return;
+    try {
+      const res = await checkIsAdmin();
+      if (!res?.isAdmin) {
+        throw redirect({ to: "/" });
+      }
+    } catch (e) {
+      // Chưa đăng nhập (401) hoặc lỗi mạng → đẩy về login.
+      const isRedirectErr = e && typeof e === "object" && "to" in e;
+      if (isRedirectErr) throw e;
+      throw redirect({ to: "/login" });
+    }
+  },
   component: AdminPage,
 });
 

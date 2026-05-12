@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Prose } from "@/components/prose";
 import { vanMenh } from "@/lib/tuvi.functions";
-import { useGeminiKey } from "@/lib/admin";
+
 
 export const Route = createFileRoute("/van-menh")({
   head: () => ({
@@ -29,13 +29,12 @@ const ICONS: Record<string, string> = { Tý: "🐭", Sửu: "🐮", Dần: "🐯
 
 function VanMenhPage() {
   const fn = useServerFn(vanMenh);
-  const geminiKey = useGeminiKey();
   const [tuoi, setTuoi] = useState("Tý");
   const year = new Date().getFullYear();
   const [nam, setNam] = useState(String(year));
 
   const m = useMutation({
-    mutationFn: (v: { conGiap: string; nam: number }) => fn({ data: { ...v, geminiKey } }),
+    mutationFn: (v: { conGiap: string; nam: number }) => fn({ data: v }),
     onSuccess: (d) => { if (d && !d.ok) toast.error(d.error || "AI tạm thời không khả dụng"); },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Có lỗi xảy ra"),
   });

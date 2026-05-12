@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { cn } from "@/lib/utils";
 import { luanSau } from "@/lib/tuvi.functions";
 import { fallbackKetQua, type KetQuaLaSo } from "@/lib/laso";
-import { useGeminiKey, useMyPoints, spendPoints } from "@/lib/admin";
+import { useMyPoints, spendPoints } from "@/lib/admin";
 import { supabase } from "@/integrations/supabase/client";
 import { LaSoChart } from "@/components/la-so-chart";
 import { Prose } from "@/components/prose";
@@ -76,10 +76,11 @@ function TuViPage() {
     onSuccess: async (res, vars) => {
       try {
         const { data: u } = await supabase.auth.getUser();
-        if (res?.data) {
+        // Chỉ lưu lịch sử cho thành viên đã đăng nhập (khách vãng lai không lưu để bảo vệ dữ liệu cá nhân).
+        if (res?.data && u.user?.id) {
           await supabase.from("la_so_history").insert({
-            user_id: u.user?.id ?? null,
-            guest_name: u.user ? null : vars.hoTen,
+            user_id: u.user.id,
+            guest_name: null,
             ho_ten: vars.hoTen,
             input: vars,
             result: res.data,
@@ -297,7 +298,6 @@ const COST_LUAN_CHI_TIET = 2000;
 
 function DeepDive({ muc, tomTat, kq }: { muc: string; tomTat: string; kq: KetQuaLaSo }) {
   const luanSauFn = useServerFn(luanSau);
-  const geminiKey = useGeminiKey();
   const points = useMyPoints();
   const [open, setOpen] = useState(false);
   const m = useMutation({
@@ -316,7 +316,6 @@ function DeepDive({ muc, tomTat, kq }: { muc: string; tomTat: string; kq: KetQua
             cungThan: kq.thongTinCoBan.cungThan,
             gioSinh: kq.thongTinCoBan.gioSinh,
           },
-          geminiKey,
         },
       });
     },
