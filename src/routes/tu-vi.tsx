@@ -457,9 +457,9 @@ function KetQuaBoxes({ kq }: { kq: KetQuaLaSo }) {
 
       <SectionBox
         index={7}
-        title="Hệ Thống Thần Cơ"
+        title="Diễn Cẩm Tam Thế"
         subtitle="Tiền vận — Trung vận — Hậu vận"
-        deep={{ muc: "Hệ Thống Thần Cơ: tiền vận, trung vận, hậu vận", tomTat: kq.dienCamTamThe, kq }}
+        deep={{ muc: "Diễn Cẩm Tam Thế: tiền vận, trung vận, hậu vận", tomTat: kq.dienCamTamThe, kq }}
       >
         <p className="whitespace-pre-line">{kq.dienCamTamThe}</p>
       </SectionBox>
