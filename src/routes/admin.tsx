@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { setGeminiKey, useGeminiKey, useIsAdmin } from "@/lib/admin";
 
 export const Route = createFileRoute("/admin")({
-  head: () => ({ meta: [{ title: "Quản trị — Diễn Cẩm Tam Thế" }] }),
+  head: () => ({ meta: [{ title: "Quản trị — Hệ Thống Thần Cơ" }] }),
   component: AdminPage,
 });
 

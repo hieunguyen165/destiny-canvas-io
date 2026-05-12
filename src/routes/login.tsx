@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/login")({
-  head: () => ({ meta: [{ title: "Đăng nhập — Diễn Cẩm Tam Thế" }] }),
+  head: () => ({ meta: [{ title: "Đăng nhập — Hệ Thống Thần Cơ" }] }),
   component: LoginPage,
 });
 

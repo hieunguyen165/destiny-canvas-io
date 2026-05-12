@@ -23,7 +23,7 @@ export const Route = createFileRoute("/tu-vi")({
   head: () => ({
     meta: [
       { title: "Lập Lá Số Tử Vi — Hệ Thống Thần Cơ" },
-      { name: "description", content: "Lập lá số tử vi miễn phí, luận giải vận mệnh theo phương pháp Diễn Cẩm Tam Thế cổ truyền." },
+      { name: "description", content: "Lập lá số tử vi miễn phí, luận giải vận mệnh theo phương pháp Hệ Thống Thần Cơ cổ truyền." },
       { property: "og:title", content: "Lập Lá Số Tử Vi — Hệ Thống Thần Cơ" },
       { property: "og:description", content: "Khám phá vận mệnh qua lá số tử vi cổ truyền Việt Nam." },
     ],
@@ -120,7 +120,7 @@ function TuViPage() {
           Lập <span className="text-gradient">Lá Số Tử Vi</span>
         </h1>
         <p className="mx-auto mt-3 max-w-xl text-sm text-muted-foreground sm:text-base">
-          Nhập thông tin của bạn để hệ thống luận giải <strong>14 mục vận mệnh</strong> theo phương pháp Diễn Cẩm Tam Thế.
+          Nhập thông tin của bạn để hệ thống luận giải <strong>14 mục vận mệnh</strong> theo phương pháp Hệ Thống Thần Cơ.
         </p>
       </section>
 
@@ -197,7 +197,7 @@ function EmptyState() {
       <h3 className="font-display text-2xl font-semibold">Nhập thông tin để nhận lá số</h3>
       <p className="mt-2 text-sm text-muted-foreground">
         Hệ thống sẽ phân tích <span className="text-gradient-gold font-semibold">14 mục vận mệnh</span> theo
-        phương pháp Diễn Cẩm Tam Thế cổ truyền.
+        phương pháp Hệ Thống Thần Cơ cổ truyền.
       </p>
 
       <div className="mt-6 inline-flex rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-700">
@@ -349,7 +349,7 @@ function KetQuaBoxes({ kq }: { kq: KetQuaLaSo }) {
   const t = kq.thongTinCoBan;
   return (
     <div className="space-y-5">
-      <SectionBox index={1} title="Bản Đồ Lá Số" subtitle="Thiên bàn 12 cung — phương pháp Diễn Cẩm Tam Thế">
+      <SectionBox index={1} title="Bản Đồ Lá Số" subtitle="Thiên bàn 12 cung — phương pháp Hệ Thống Thần Cơ">
         <LaSoChart kq={kq} />
       </SectionBox>
 
@@ -457,9 +457,9 @@ function KetQuaBoxes({ kq }: { kq: KetQuaLaSo }) {
 
       <SectionBox
         index={7}
-        title="Diễn Cẩm Tam Thế"
+        title="Hệ Thống Thần Cơ"
         subtitle="Tiền vận — Trung vận — Hậu vận"
-        deep={{ muc: "Diễn Cẩm Tam Thế: tiền vận, trung vận, hậu vận", tomTat: kq.dienCamTamThe, kq }}
+        deep={{ muc: "Hệ Thống Thần Cơ: tiền vận, trung vận, hậu vận", tomTat: kq.dienCamTamThe, kq }}
       >
         <p className="whitespace-pre-line">{kq.dienCamTamThe}</p>
       </SectionBox>

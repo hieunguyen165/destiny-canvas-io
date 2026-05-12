@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/lich-am")({
   head: () => ({
     meta: [
-      { title: "Lịch Âm — Đổi Dương ↔ Âm — Diễn Cẩm Tam Thế" },
+      { title: "Lịch Âm — Đổi Dương ↔ Âm — Hệ Thống Thần Cơ" },
       { name: "description", content: "Tra cứu và đổi ngày dương lịch sang âm lịch, xem can chi, tiết khí, hoàng đạo." },
       { property: "og:title", content: "Tra Cứu Lịch Âm" },
       { property: "og:description", content: "Đổi Dương ↔ Âm và xem can chi từng ngày." },

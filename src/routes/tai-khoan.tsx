@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/tai-khoan")({
-  head: () => ({ meta: [{ title: "Tài khoản — Diễn Cẩm Tam Thế" }] }),
+  head: () => ({ meta: [{ title: "Tài khoản — Hệ Thống Thần Cơ" }] }),
   component: TaiKhoanPage,
 });
 
