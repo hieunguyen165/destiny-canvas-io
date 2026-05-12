@@ -6,7 +6,42 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { attachAuthHeader } from "./attach-auth";
 
-const COST_LUAN_CHI_TIET = 2000;
+const DEFAULT_COSTS_SERVER: Record<string, number> = {
+  ls_12cung: 2000, ls_dai_tieu_han: 2000, ls_toan_bo_dai_han: 2000,
+  ls_tieu_han_nam: 2000, ls_dien_cam_tam_the: 2000, ls_so_sanh_tong_luan: 2000,
+  ls_so_cau: 2000, ls_nghe_nghiep: 2000, ls_thien_can: 2000,
+  ls_ngay_sang_hen: 2000, ls_so_co_nha: 2000, ls_so_kiep_vc: 2000,
+  van_menh: 0, hoang_dao: 0, ngay_tot: 0, lich_am: 0,
+};
+
+/** Đọc bảng giá điểm (admin cấu hình) để biết mỗi mục cần bao nhiêu điểm. */
+async function getCost(key: string): Promise<number> {
+  try {
+    const { data } = await supabaseAdmin
+      .from("app_settings")
+      .select("value")
+      .eq("key", "feature_costs")
+      .maybeSingle();
+    if (!data?.value) return DEFAULT_COSTS_SERVER[key] ?? 0;
+    const parsed = JSON.parse(data.value) as Record<string, number>;
+    const v = parsed[key];
+    return typeof v === "number" && v >= 0 ? v : (DEFAULT_COSTS_SERVER[key] ?? 0);
+  } catch {
+    return DEFAULT_COSTS_SERVER[key] ?? 0;
+  }
+}
+
+/** Trừ điểm theo costKey. Trả về null khi miễn phí, hoặc { error } nếu không đủ. */
+async function chargePoints(supabase: any, costKey: string, reason: string): Promise<{ error?: string }> {
+  const cost = await getCost(costKey);
+  if (cost <= 0) return {};
+  const { error } = await supabase.rpc("spend_points", { _amount: cost, _reason: reason });
+  if (error) {
+    if ((error.message || "").includes("insufficient_points")) return { error: "insufficient_points" };
+    return { error: error.message || "Không thể trừ điểm." };
+  }
+  return {};
+}
 
 /** Đọc khoá AI dùng chung từ app_settings (chỉ chạy trên server, dùng service role để bỏ qua RLS). */
 async function getSharedAiKey(): Promise<string | undefined> {
