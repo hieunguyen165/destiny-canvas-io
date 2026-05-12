@@ -43,6 +43,7 @@ function HoangDaoPage() {
 
   const m = useMutation({
     mutationFn: (cung: string) => fn({ data: { cung, geminiKey } }),
+    onSuccess: (d) => { if (d && !d.ok) toast.error(d.error || "AI tạm thời không khả dụng"); },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Có lỗi xảy ra"),
   });
 

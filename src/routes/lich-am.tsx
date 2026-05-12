@@ -36,6 +36,7 @@ function LichAmPage() {
 
   const m = useMutation({
     mutationFn: (v: { ngay: number; thang: number; nam: number; chieu: "d2a" | "a2d" }) => fn({ data: { ...v, geminiKey } }),
+    onSuccess: (d) => { if (d && !d.ok) toast.error(d.error || "AI tạm thời không khả dụng"); },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Có lỗi xảy ra"),
   });
 
