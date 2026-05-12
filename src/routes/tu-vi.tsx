@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { cn } from "@/lib/utils";
 import { luanSau } from "@/lib/tuvi.functions";
 import { fallbackKetQua, type KetQuaLaSo } from "@/lib/laso";
-import { useGeminiKey, useMyPoints, spendPoints } from "@/lib/admin";
+import { useMyPoints, spendPoints } from "@/lib/admin";
 import { supabase } from "@/integrations/supabase/client";
 import { LaSoChart } from "@/components/la-so-chart";
 import { Prose } from "@/components/prose";
@@ -297,7 +297,6 @@ const COST_LUAN_CHI_TIET = 2000;
 
 function DeepDive({ muc, tomTat, kq }: { muc: string; tomTat: string; kq: KetQuaLaSo }) {
   const luanSauFn = useServerFn(luanSau);
-  const geminiKey = useGeminiKey();
   const points = useMyPoints();
   const [open, setOpen] = useState(false);
   const m = useMutation({
@@ -316,7 +315,6 @@ function DeepDive({ muc, tomTat, kq }: { muc: string; tomTat: string; kq: KetQua
             cungThan: kq.thongTinCoBan.cungThan,
             gioSinh: kq.thongTinCoBan.gioSinh,
           },
-          geminiKey,
         },
       });
     },

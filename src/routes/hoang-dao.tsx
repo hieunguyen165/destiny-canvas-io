@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
 import { Prose } from "@/components/prose";
 import { luanCungHoangDao } from "@/lib/tuvi.functions";
-import { useGeminiKey } from "@/lib/admin";
+
 
 export const Route = createFileRoute("/hoang-dao")({
   head: () => ({
@@ -38,11 +38,10 @@ const CUNG = [
 
 function HoangDaoPage() {
   const fn = useServerFn(luanCungHoangDao);
-  const geminiKey = useGeminiKey();
   const [chosen, setChosen] = useState<string | null>(null);
 
   const m = useMutation({
-    mutationFn: (cung: string) => fn({ data: { cung, geminiKey } }),
+    mutationFn: (cung: string) => fn({ data: { cung } }),
     onSuccess: (d) => { if (d && !d.ok) toast.error(d.error || "AI tạm thời không khả dụng"); },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Có lỗi xảy ra"),
   });
