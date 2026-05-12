@@ -44,24 +44,35 @@ export function useAppSettings(keys: string[]) {
   const [vals, setVals] = useState<Record<string, string>>({});
   useEffect(() => {
     let cancel = false;
+    let channel: ReturnType<typeof supabase.channel> | null = null;
     const load = async () => {
-      const { data } = await supabase.from("app_settings").select("key,value").in("key", keys);
+      try {
+        const { data, error } = await supabase.from("app_settings").select("key,value").in("key", keys);
+        if (error) throw error;
+        if (cancel) return;
+        const out: Record<string, string> = {};
+        (data ?? []).forEach((r: { key: string; value: string | null }) => { out[r.key] = r.value ?? ""; });
+        setVals(out);
+      } catch (error) {
+        console.error("Không tải được cấu hình website", error);
+      }
       if (cancel) return;
-      const out: Record<string, string> = {};
-      (data ?? []).forEach((r: { key: string; value: string | null }) => { out[r.key] = r.value ?? ""; });
-      setVals(out);
     };
     load();
     const onLocal = () => load();
     if (typeof window !== "undefined") window.addEventListener(EVT, onLocal);
-    const channel = supabase
-      .channel("app_settings-multi-sync-" + keys.join("_"))
-      .on("postgres_changes", { event: "*", schema: "public", table: "app_settings" }, () => load())
-      .subscribe();
+    try {
+      channel = supabase
+        .channel(`app_settings-multi-sync-${keys.join("_")}-${Date.now()}-${Math.random().toString(36).slice(2)}`)
+        .on("postgres_changes", { event: "*", schema: "public", table: "app_settings" }, () => load())
+        .subscribe();
+    } catch (error) {
+      console.error("Không khởi tạo được đồng bộ cấu hình website", error);
+    }
     return () => {
       cancel = true;
       if (typeof window !== "undefined") window.removeEventListener(EVT, onLocal);
-      supabase.removeChannel(channel);
+      if (channel) supabase.removeChannel(channel);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [keys.join(",")]);
