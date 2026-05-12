@@ -81,7 +81,11 @@ function TuViPage() {
 
   type Vars = { hoTen: string; gioiTinh: "nam" | "nu"; loaiLich: "duong" | "am"; ngay: number; thang: number; nam: number; gio: number };
   const m = useMutation({
-    mutationFn: async (vars: Vars) => ({ ok: true as const, data: fallbackKetQua(vars) }),
+    mutationFn: async (vars: Vars) => {
+      // Cho phép chạy hết hiệu ứng load huyền bí (5 phrase × ~1.2s ≈ 6s) để tạo cảm giác cuốn hút.
+      await new Promise((r) => setTimeout(r, 6000));
+      return { ok: true as const, data: fallbackKetQua(vars) };
+    },
     onSuccess: async (res, vars) => {
       try {
         const { data: u } = await supabase.auth.getUser();
@@ -138,7 +142,7 @@ function TuViPage() {
         </p>
       </section>
 
-      <section className="mx-auto max-w-3xl px-4 sm:px-6">
+      <section className="mx-auto max-w-5xl px-4 sm:px-6">
         <Card className="glass-card border-border/60 shadow-elegant p-6 sm:p-8">
           <form onSubmit={onSubmit} className="space-y-6">
             <Field icon={<User className="h-4 w-4" />} label="Họ và tên">
@@ -263,7 +267,7 @@ function EmptyState() {
 function MysticLoading() {
   const [i, setI] = useState(0);
   useEffect(() => {
-    const id = setInterval(() => setI((x) => (x + 1) % LOAD_PHRASES.length), 2200);
+    const id = setInterval(() => setI((x) => Math.min(x + 1, LOAD_PHRASES.length - 1)), 1200);
     return () => clearInterval(id);
   }, []);
   return (

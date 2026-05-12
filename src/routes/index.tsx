@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Sparkles, Compass, Calendar, Star, Heart, Phone, Hash, CalendarDays, ArrowRight, Shield, Scroll, BookOpen } from "lucide-react";
+import { Compass, Calendar, Star, Heart, Phone, Hash, CalendarDays, ArrowRight, Shield, Scroll, BookOpen, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import heroBg from "@/assets/hero-bg.jpg";
@@ -18,7 +18,7 @@ export const Route = createFileRoute("/")({
 
 const TOOLS = [
   { to: "/tu-vi", label: "Tử Vi Đẩu Số", desc: "Lập lá số 12 cung, luận giải 14 mục vận mệnh", icon: Compass, color: "from-rose-500/20 to-pink-500/10" },
-  { to: "/van-menh", label: "Luận Vận Mệnh", desc: "Phân tích vận hạn, sự nghiệp, tình duyên theo năm", icon: Sparkles, color: "from-purple-500/20 to-indigo-500/10" },
+  { to: "/van-menh", label: "Luận Vận Mệnh", desc: "Phân tích vận hạn, sự nghiệp, tình duyên theo năm", icon: Moon, color: "from-purple-500/20 to-indigo-500/10" },
   { to: "/hoang-dao", label: "Cung Hoàng Đạo", desc: "Tử vi tuần — 12 cung phương Tây", icon: Star, color: "from-amber-500/20 to-yellow-500/10" },
   { to: "/lich-am", label: "Lịch Âm", desc: "Đổi lịch âm — dương, can chi, tiết khí", icon: Calendar, color: "from-emerald-500/20 to-teal-500/10" },
   { to: "/ngay-tot", label: "Xem Ngày Tốt", desc: "Tìm ngày hoàng đạo cho việc đại sự", icon: CalendarDays, color: "from-cyan-500/20 to-sky-500/10" },
@@ -49,7 +49,7 @@ function HomePage() {
 
         <div className="mx-auto max-w-5xl px-4 pt-16 pb-10 text-center sm:px-6 sm:pt-24">
           <div className="inline-flex animate-fade-in items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium text-primary">
-            <Sparkles className="h-3 w-3" /> Tinh hoa tử vi cổ truyền Việt Nam
+            Tinh hoa tử vi cổ truyền Việt Nam
           </div>
           <h1 className="mt-6 animate-fade-in font-display text-4xl font-bold tracking-tight sm:text-6xl md:text-7xl">
             Khám Phá <span className="text-gradient">Vận Mệnh</span>
@@ -64,7 +64,7 @@ function HomePage() {
               <Link to="/tu-vi"><Compass className="mr-2 h-5 w-5" />Xem Tử Vi Ngay</Link>
             </Button>
             <Button asChild size="lg" variant="outline" className="hover-scale">
-              <Link to="/van-menh"><Sparkles className="mr-2 h-5 w-5" />Luận Vận Mệnh</Link>
+              <Link to="/van-menh"><Moon className="mr-2 h-5 w-5" />Luận Vận Mệnh</Link>
             </Button>
             <Button asChild size="lg" variant="ghost">
               <a href="#tools">Khám phá thêm <ArrowRight className="ml-2 h-4 w-4" /></a>
@@ -134,8 +134,7 @@ function HomePage() {
       <section className="mx-auto max-w-4xl px-4 pb-20 sm:px-6">
         <Card className="glass-card relative overflow-hidden border-primary/30 p-10 text-center shadow-elegant">
           <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-br from-primary/10 via-accent/10 to-primary/5" />
-          <Sparkles className="mx-auto h-10 w-10 animate-pulse text-primary" />
-          <h2 className="mt-4 font-display text-3xl font-bold sm:text-4xl">
+          <h2 className="font-display text-3xl font-bold sm:text-4xl">
             Sẵn sàng <span className="text-gradient">khải lộ thiên cơ</span>?
           </h2>
           <p className="mx-auto mt-3 max-w-xl text-muted-foreground">
