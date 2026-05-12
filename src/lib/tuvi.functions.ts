@@ -126,7 +126,7 @@ async function safeRun(prompt: string, geminiKey?: string): Promise<{ ok: true; 
   }
 }
 
-const optKey = z.string().optional();
+
 
 const laSoSchema = z.object({
   hoTen: z.string().min(1).max(80),
@@ -301,7 +301,6 @@ const luanSauSchema = z.object({
     cungThan: z.string(),
     gioSinh: z.string(),
   }),
-  geminiKey: optKey,
 });
 
 export const luanSau = createServerFn({ method: "POST" })
