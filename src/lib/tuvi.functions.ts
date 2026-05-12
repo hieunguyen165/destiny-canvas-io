@@ -307,6 +307,7 @@ export const luanSau = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => luanSauSchema.parse(d))
   .handler(async ({ data }) => {
     const t = data.thongTin;
+    const sharedKey = await getSharedAiKey();
     const r = await safeRun(
       `Bạn là thầy tử vi cổ truyền Việt Nam, văn phong trang trọng, sâu sắc, sử dụng thuật ngữ tử vi (cung, sao, can chi, ngũ hành).
 
@@ -333,38 +334,38 @@ Hãy viết LUẬN GIẢI CHUYÊN SÂU bằng tiếng Việt, MARKDOWN, gồm c�
 (3-4 gạch đầu dòng cụ thể, hành động được)
 
 Văn phong tử vi cổ truyền, súc tích nhưng sâu, không lan man.`,
-      data.geminiKey,
+      sharedKey,
     );
     return r;
   });
 
-// Các function khác giữ nguyên
 const vanMenhSchema = z.object({
   conGiap: z.string().min(1),
   nam: z.number().int().min(2020).max(2100),
-  geminiKey: optKey,
 });
 
 export const vanMenh = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => vanMenhSchema.parse(d))
   .handler(async ({ data }) => {
+    const sharedKey = await getSharedAiKey();
     const r = await safeRun(
       `Luận giải vận mệnh năm ${data.nam} cho người tuổi ${data.conGiap} bằng tiếng Việt, văn phong tử vi cổ truyền.
 Trả về MARKDOWN với các phần: ## Tổng Quan, ## Tài Lộc, ## Công Việc, ## Tình Duyên, ## Sức Khoẻ, ## Lưu Ý, ## Màu & Số May Mắn. Mỗi phần 2-3 câu súc tích.`,
-      data.geminiKey,
+      sharedKey,
     );
     return r;
   });
 
-const cungHDSchema = z.object({ cung: z.string().min(1), geminiKey: optKey });
+const cungHDSchema = z.object({ cung: z.string().min(1) });
 
 export const luanCungHoangDao = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => cungHDSchema.parse(d))
   .handler(async ({ data }) => {
+    const sharedKey = await getSharedAiKey();
     const r = await safeRun(
       `Tử vi tuần này cho cung hoàng đạo ${data.cung} (phương Tây), bằng tiếng Việt.
 Markdown gồm: ## Tổng Quan Tuần, ## Sự Nghiệp, ## Tài Chính, ## Tình Yêu, ## Sức Khoẻ, ## Lời Khuyên. Mỗi phần 2-3 câu.`,
-      data.geminiKey,
+      sharedKey,
     );
     return r;
   });
@@ -373,18 +374,18 @@ const ngayTotSchema = z.object({
   loaiViec: z.string().min(1),
   thang: z.number().int().min(1).max(12),
   nam: z.number().int().min(2024).max(2100),
-  geminiKey: optKey,
 });
 
 export const ngayTot = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => ngayTotSchema.parse(d))
   .handler(async ({ data }) => {
+    const sharedKey = await getSharedAiKey();
     const r = await safeRun(
       `Liệt kê 5-8 ngày tốt trong tháng ${data.thang}/${data.nam} (dương lịch) phù hợp cho việc "${data.loaiViec}" theo lịch can chi Việt Nam.
 Trả về MARKDOWN dạng bảng:
 | Ngày dương | Ngày âm | Can Chi | Giờ tốt | Lý do |
 Sau bảng thêm phần ## Ngày Cần Tránh (1-2 ngày xấu) và ## Lời Khuyên (2 câu).`,
-      data.geminiKey,
+      sharedKey,
     );
     return r;
   });
@@ -394,13 +395,13 @@ const lichAmSchema = z.object({
   thang: z.number().int().min(1).max(12),
   nam: z.number().int().min(1900).max(2100),
   chieu: z.enum(["d2a", "a2d"]),
-  geminiKey: optKey,
 });
 
 export const doiLich = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => lichAmSchema.parse(d))
   .handler(async ({ data }) => {
     const huong = data.chieu === "d2a" ? "Dương lịch sang Âm lịch" : "Âm lịch sang Dương lịch";
+    const sharedKey = await getSharedAiKey();
     const r = await safeRun(
       `Hãy đổi ngày ${data.ngay}/${data.thang}/${data.nam} từ ${huong} một cách chính xác.
 Trả về MARKDOWN ngắn gọn:
@@ -411,7 +412,7 @@ Trả về MARKDOWN ngắn gọn:
 - **Can Chi năm:** ...
 - **Tiết khí:** ...
 - **Đánh giá:** Hoàng đạo / Hắc đạo, có nên làm việc lớn không (1 câu).`,
-      data.geminiKey,
+      sharedKey,
     );
     return r;
   });
