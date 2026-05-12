@@ -148,7 +148,15 @@ export function SiteHeader() {
   );
 }
 
+const FOOTER_KEYS = ["footer_about", "footer_note", "footer_copyright", "footer_contact"];
+
 export function SiteFooter() {
+  const s = useAppSettings(FOOTER_KEYS);
+  const about = s.footer_about || "Tinh hoa tử vi cổ truyền — soi tỏ vận mệnh, đón lành tránh dữ.";
+  const note = s.footer_note || "Mọi luận giải mang tính tham khảo dưới góc nhìn văn hoá phương Đông, không thay thế cho quyết định cá nhân.";
+  const copyright = s.footer_copyright || `© ${new Date().getFullYear()} Hệ Thống Thần Cơ · Tinh hoa tử vi cổ truyền.`;
+  const contact = s.footer_contact;
+
   return (
     <footer className="mt-20 border-t border-border/40 bg-background/60 backdrop-blur">
       <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 md:grid-cols-3">
@@ -157,9 +165,8 @@ export function SiteFooter() {
             <Sparkles className="h-4 w-4 text-primary" />
             <span className="text-gradient">Hệ Thống Thần Cơ</span>
           </div>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Trí tuệ cổ xưa kết hợp công nghệ AI — soi tỏ vận mệnh, đón lành tránh dữ.
-          </p>
+          <p className="mt-2 whitespace-pre-line text-sm text-muted-foreground">{about}</p>
+          {contact && <p className="mt-2 whitespace-pre-line text-sm text-muted-foreground">{contact}</p>}
         </div>
         <div>
           <h4 className="font-display text-sm font-semibold uppercase tracking-widest text-foreground/70">Khám phá</h4>
@@ -171,14 +178,11 @@ export function SiteFooter() {
         </div>
         <div>
           <h4 className="font-display text-sm font-semibold uppercase tracking-widest text-foreground/70">Lưu ý</h4>
-          <p className="mt-3 text-sm text-muted-foreground">
-            Mọi luận giải mang tính tham khảo dưới góc nhìn văn hoá phương Đông,
-            không thay thế cho quyết định cá nhân.
-          </p>
+          <p className="mt-3 whitespace-pre-line text-sm text-muted-foreground">{note}</p>
         </div>
       </div>
       <div className="border-t border-border/40 py-4 text-center text-xs text-muted-foreground">
-        © {new Date().getFullYear()} Hệ Thống Thần Cơ · Trí tuệ cổ truyền · Công nghệ AI.
+        {copyright}
       </div>
     </footer>
   );
