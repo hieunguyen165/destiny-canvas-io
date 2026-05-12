@@ -360,9 +360,9 @@ function DeepDive({ muc, tomTat, kq }: { muc: string; tomTat: string; kq: KetQua
           </>
         )}
       </button>
-      {open && m.data?.content && (
+      {open && m.data?.ok && m.data.content && (
         <div className="mt-3 rounded-lg border border-primary/20 bg-gradient-to-br from-primary/5 via-background/40 to-accent/10 p-4">
-          <Prose content={m.data.content} />
+          <Prose content={m.data.ok ? m.data.content : ""} />
         </div>
       )}
     </div>

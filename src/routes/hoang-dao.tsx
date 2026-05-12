@@ -77,10 +77,10 @@ function HoangDaoPage() {
         </Card>
       )}
 
-      {m.data?.content && !m.isPending && (
+      {m.data?.ok && m.data.content && !m.isPending && (
         <Card className="glass-card mt-8 p-6 sm:p-10 shadow-elegant">
           <div className="mb-3 text-sm text-muted-foreground">Tử vi tuần — <strong className="text-foreground">{chosen}</strong></div>
-          <Prose content={m.data.content} />
+          <Prose content={m.data.ok ? m.data.content : ""} />
         </Card>
       )}
     </div>

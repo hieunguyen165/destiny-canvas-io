@@ -93,9 +93,9 @@ function LichAmPage() {
         </Button>
       </Card>
 
-      {m.data?.content && (
+      {m.data?.ok && m.data.content && (
         <Card className="glass-card mt-8 p-6 sm:p-8 shadow-elegant">
-          <Prose content={m.data.content} />
+          <Prose content={m.data.ok ? m.data.content : ""} />
         </Card>
       )}
     </div>

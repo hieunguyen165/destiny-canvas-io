@@ -91,12 +91,12 @@ function NgayTotPage() {
         </div>
       </Card>
 
-      {m.data?.content && (
+      {m.data?.ok && m.data.content && (
         <Card className="glass-card mt-8 p-6 sm:p-10 shadow-elegant">
           <div className="mb-3 text-sm text-muted-foreground">
             Ngày tốt cho việc <strong className="text-foreground">{loaiViec}</strong> trong tháng <strong className="text-foreground">{thang}/{nam}</strong>
           </div>
-          <Prose content={m.data.content} />
+          <Prose content={m.data.ok ? m.data.content : ""} />
         </Card>
       )}
     </div>
