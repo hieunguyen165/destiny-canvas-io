@@ -109,8 +109,9 @@ function PointsCard() {
             <div className="text-xs text-muted-foreground">1 lần luận chi tiết = 2.000 điểm</div>
           </div>
         </div>
-        <Button onClick={() => toast.info("Tính năng nạp điểm đang được phát triển. Vui lòng liên hệ admin để được cộng điểm.")} className="gradient-primary text-primary-foreground shadow-elegant">
-          <Sparkles className="mr-1.5 h-4 w-4" />Nạp điểm</Button>
+        <Button asChild className="gradient-primary text-primary-foreground shadow-elegant">
+          <Link to="/nap-diem"><Sparkles className="mr-1.5 h-4 w-4" />Nạp điểm</Link>
+        </Button>
       </div>
     </Card>
   );
