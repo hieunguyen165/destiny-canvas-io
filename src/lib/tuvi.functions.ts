@@ -3,6 +3,10 @@ import { generateText } from "ai";
 import { z } from "zod";
 import { createLovableAiGatewayProvider } from "./ai-gateway";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { attachAuthHeader } from "./attach-auth";
+
+const COST_LUAN_CHI_TIET = 2000;
 
 /** Đọc khoá AI dùng chung từ app_settings (chỉ chạy trên server, dùng service role để bỏ qua RLS). */
 async function getSharedAiKey(): Promise<string | undefined> {
@@ -304,8 +308,20 @@ const luanSauSchema = z.object({
 });
 
 export const luanSau = createServerFn({ method: "POST" })
+  .middleware([attachAuthHeader, requireSupabaseAuth])
   .inputValidator((d: unknown) => luanSauSchema.parse(d))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    const ctx = context as { supabase: any };
+    // Trừ điểm server-side qua RPC (kiểm tra số dư + log transaction). Throw nếu không đủ.
+    const { error: spendErr } = await ctx.supabase.rpc("spend_points", {
+      _amount: COST_LUAN_CHI_TIET,
+      _reason: `Luận chi tiết: ${data.muc}`,
+    });
+    if (spendErr) {
+      const msg = spendErr.message || "";
+      if (msg.includes("insufficient_points")) return { ok: false as const, error: "insufficient_points" };
+      return { ok: false as const, error: msg || "Không thể trừ điểm." };
+    }
     const t = data.thongTin;
     const sharedKey = await getSharedAiKey();
     const r = await safeRun(
@@ -345,6 +361,7 @@ const vanMenhSchema = z.object({
 });
 
 export const vanMenh = createServerFn({ method: "POST" })
+  .middleware([attachAuthHeader, requireSupabaseAuth])
   .inputValidator((d: unknown) => vanMenhSchema.parse(d))
   .handler(async ({ data }) => {
     const sharedKey = await getSharedAiKey();
@@ -359,6 +376,7 @@ Trả về MARKDOWN với các phần: ## Tổng Quan, ## Tài Lộc, ## Công V
 const cungHDSchema = z.object({ cung: z.string().min(1) });
 
 export const luanCungHoangDao = createServerFn({ method: "POST" })
+  .middleware([attachAuthHeader, requireSupabaseAuth])
   .inputValidator((d: unknown) => cungHDSchema.parse(d))
   .handler(async ({ data }) => {
     const sharedKey = await getSharedAiKey();
@@ -377,6 +395,7 @@ const ngayTotSchema = z.object({
 });
 
 export const ngayTot = createServerFn({ method: "POST" })
+  .middleware([attachAuthHeader, requireSupabaseAuth])
   .inputValidator((d: unknown) => ngayTotSchema.parse(d))
   .handler(async ({ data }) => {
     const sharedKey = await getSharedAiKey();
@@ -398,6 +417,7 @@ const lichAmSchema = z.object({
 });
 
 export const doiLich = createServerFn({ method: "POST" })
+  .middleware([attachAuthHeader, requireSupabaseAuth])
   .inputValidator((d: unknown) => lichAmSchema.parse(d))
   .handler(async ({ data }) => {
     const huong = data.chieu === "d2a" ? "Dương lịch sang Âm lịch" : "Âm lịch sang Dương lịch";
