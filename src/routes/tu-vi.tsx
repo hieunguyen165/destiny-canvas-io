@@ -10,7 +10,8 @@ import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { lapLaSo, luanSau, type KetQuaLaSo } from "@/lib/tuvi.functions";
+import { luanSau } from "@/lib/tuvi.functions";
+import { fallbackKetQua, type KetQuaLaSo } from "@/lib/laso";
 import { useGeminiKey, useMyPoints, spendPoints } from "@/lib/admin";
 import { supabase } from "@/integrations/supabase/client";
 import { LaSoChart } from "@/components/la-so-chart";
@@ -61,7 +62,6 @@ const LOAD_PHRASES = [
 ];
 
 function TuViPage() {
-  const lapLaSoFn = useServerFn(lapLaSo);
   const [hoTen, setHoTen] = useState("");
   const [gioiTinh, setGioiTinh] = useState<"nam" | "nu">("nam");
   const [loaiLich, setLoaiLich] = useState<"duong" | "am">("duong");
@@ -72,17 +72,21 @@ function TuViPage() {
 
   type Vars = { hoTen: string; gioiTinh: "nam" | "nu"; loaiLich: "duong" | "am"; ngay: number; thang: number; nam: number; gio: number };
   const m = useMutation({
-    mutationFn: (vars: Vars) => lapLaSoFn({ data: vars }),
+    mutationFn: async (vars: Vars) => ({ ok: true as const, data: fallbackKetQua(vars) }),
     onSuccess: async (res, vars) => {
-      const { data: u } = await supabase.auth.getUser();
-      if (res?.data) {
-        await supabase.from("la_so_history").insert({
-          user_id: u.user?.id ?? null,
-          guest_name: u.user ? null : vars.hoTen,
-          ho_ten: vars.hoTen,
-          input: vars,
-          result: res.data,
-        });
+      try {
+        const { data: u } = await supabase.auth.getUser();
+        if (res?.data) {
+          await supabase.from("la_so_history").insert({
+            user_id: u.user?.id ?? null,
+            guest_name: u.user ? null : vars.hoTen,
+            ho_ten: vars.hoTen,
+            input: vars,
+            result: res.data,
+          });
+        }
+      } catch (error) {
+        console.error("[la_so_history] insert failed", error);
       }
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Có lỗi xảy ra, mời thử lại."),
