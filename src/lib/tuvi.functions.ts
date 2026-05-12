@@ -308,8 +308,20 @@ const luanSauSchema = z.object({
 });
 
 export const luanSau = createServerFn({ method: "POST" })
+  .middleware([attachAuthHeader, requireSupabaseAuth])
   .inputValidator((d: unknown) => luanSauSchema.parse(d))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    const ctx = context as { supabase: any };
+    // Trừ điểm server-side qua RPC (kiểm tra số dư + log transaction). Throw nếu không đủ.
+    const { error: spendErr } = await ctx.supabase.rpc("spend_points", {
+      _amount: COST_LUAN_CHI_TIET,
+      _reason: `Luận chi tiết: ${data.muc}`,
+    });
+    if (spendErr) {
+      const msg = spendErr.message || "";
+      if (msg.includes("insufficient_points")) return { ok: false as const, error: "insufficient_points" };
+      return { ok: false as const, error: msg || "Không thể trừ điểm." };
+    }
     const t = data.thongTin;
     const sharedKey = await getSharedAiKey();
     const r = await safeRun(
