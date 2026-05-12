@@ -395,6 +395,7 @@ const ngayTotSchema = z.object({
 });
 
 export const ngayTot = createServerFn({ method: "POST" })
+  .middleware([attachAuthHeader, requireSupabaseAuth])
   .inputValidator((d: unknown) => ngayTotSchema.parse(d))
   .handler(async ({ data }) => {
     const sharedKey = await getSharedAiKey();
