@@ -49,7 +49,7 @@ function HomePage() {
 
         <div className="mx-auto max-w-5xl px-4 pt-16 pb-10 text-center sm:px-6 sm:pt-24">
           <div className="inline-flex animate-fade-in items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium text-primary">
-            <Sparkles className="h-3 w-3" /> Trí tuệ cổ xưa & Công nghệ AI
+            <Sparkles className="h-3 w-3" /> Tinh hoa tử vi cổ truyền Việt Nam
           </div>
           <h1 className="mt-6 animate-fade-in font-display text-4xl font-bold tracking-tight sm:text-6xl md:text-7xl">
             Khám Phá <span className="text-gradient">Vận Mệnh</span>
