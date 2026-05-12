@@ -16,8 +16,8 @@ export function SeoSection({
   faqs?: { q: string; a: string }[];
 }) {
   return (
-    <section className="mx-auto mt-16 max-w-4xl px-4 sm:px-6">
-      <div className="rounded-2xl border border-border/60 bg-background/60 p-6 sm:p-10 shadow-soft backdrop-blur">
+    <section className="mt-16 w-full">
+      <div className="w-full rounded-2xl border border-border/60 bg-background/60 p-6 sm:p-10 shadow-soft backdrop-blur">
         <h2 className="font-display text-2xl font-semibold text-primary sm:text-3xl">
           {title}
         </h2>
