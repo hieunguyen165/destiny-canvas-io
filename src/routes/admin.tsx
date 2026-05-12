@@ -7,8 +7,9 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
-import { setGeminiKey, useGeminiKey, useIsAdmin } from "@/lib/admin";
+import { setGeminiKey, useGeminiKey, useIsAdmin, useAppSettings, setAppSetting } from "@/lib/admin";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Quản trị — Hệ Thống Thần Cơ" }] }),
