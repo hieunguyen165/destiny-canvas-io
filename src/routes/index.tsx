@@ -29,7 +29,7 @@ const TOOLS = [
 
 const FEATURES = [
   { icon: BookOpen, title: "Tinh Hoa Cổ Truyền", desc: "Kế thừa thuật toán Tử Vi Đẩu Số và phương pháp Diễn Cẩm Tam Thế hàng nghìn năm." },
-  { icon: Cpu, title: "AI Luận Giải Sâu", desc: "Trí tuệ nhân tạo hiện đại đọc hiểu can chi, sao chiếu, đại tiểu hạn của bạn." },
+  { icon: Scroll, title: "Luận Giải Chuyên Sâu", desc: "Hệ thống đọc hiểu can chi, sao chiếu, đại tiểu hạn — luận giải chi tiết theo từng cung." },
   { icon: Shield, title: "Riêng Tư & An Toàn", desc: "Thông tin của bạn được mã hoá và bảo mật tuyệt đối, không chia sẻ cho bên thứ ba." },
 ];
 
