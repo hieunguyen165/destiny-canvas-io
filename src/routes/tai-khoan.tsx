@@ -52,6 +52,8 @@ function TaiKhoanPage() {
         </div>
       </div>
 
+      <AdminAccessCard />
+
       <PointsCard />
 
       <Tabs defaultValue="profile">
