@@ -302,8 +302,7 @@ function DeepDive({ muc, tomTat, kq }: { muc: string; tomTat: string; kq: KetQua
   const [open, setOpen] = useState(false);
   const m = useMutation({
     mutationFn: async () => {
-      // Trừ điểm trước, nếu thất bại sẽ throw
-      await spendPoints(COST_LUAN_CHI_TIET, `Luận chi tiết: ${muc}`);
+      // Server sẽ tự trừ điểm + kiểm soát quyền (requireSupabaseAuth + spend_points RPC).
       return luanSauFn({
         data: {
           muc, tomTat,
@@ -319,11 +318,15 @@ function DeepDive({ muc, tomTat, kq }: { muc: string; tomTat: string; kq: KetQua
         },
       });
     },
-    onSuccess: (d) => { if (d && !d.ok) toast.error(d.error || "AI tạm thời không khả dụng"); },
+    onSuccess: (d) => {
+      if (d && !d.ok) {
+        if (d.error === "insufficient_points") toast.error(`Không đủ điểm! Cần ${COST_LUAN_CHI_TIET.toLocaleString("vi-VN")} điểm cho mỗi lần luận chi tiết.`);
+        else toast.error(d.error || "AI tạm thời không khả dụng");
+      }
+    },
     onError: (e) => {
       const msg = e instanceof Error ? e.message : "";
-      if (msg.includes("insufficient_points")) toast.error(`Không đủ điểm! Cần ${COST_LUAN_CHI_TIET.toLocaleString("vi-VN")} điểm cho mỗi lần luận chi tiết.`);
-      else if (msg.includes("unauthorized")) toast.error("Vui lòng đăng nhập để dùng tính năng nâng cao.");
+      if (msg.includes("Unauthorized") || msg.includes("401")) toast.error("Vui lòng đăng nhập để dùng tính năng nâng cao.");
       else toast.error(msg || "Không truy được tàng thư, mời thử lại.");
     },
   });
