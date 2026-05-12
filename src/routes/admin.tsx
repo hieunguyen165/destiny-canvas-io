@@ -183,7 +183,7 @@ function MembersPanel() {
   const [rows, setRows] = useState<Member[] | null>(null);
   const [view, setView] = useState<Member | null>(null);
   const load = () => supabase.from("profiles").select("id,display_name,created_at,points").order("created_at", { ascending: false }).then(({ data, error }) => { if (error) toast.error(error.message); setRows((data as Member[]) ?? []); });
-  useEffect(load, []);
+  useEffect(() => { load(); }, []);
   if (!rows) return <Card className="glass-card p-6">Đang tải…</Card>;
   return (
     <Card className="glass-card p-6 shadow-elegant">
