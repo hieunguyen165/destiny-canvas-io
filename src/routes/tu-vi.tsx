@@ -17,6 +17,7 @@ import { useCosts } from "@/lib/costs";
 import { supabase } from "@/integrations/supabase/client";
 import { LaSoChart } from "@/components/la-so-chart";
 import { Prose } from "@/components/prose";
+import { SeoSection } from "@/components/seo-section";
 import { ChevronDown, Gift } from "lucide-react";
 import heroBg from "@/assets/hero-bg.jpg";
 import vase from "@/assets/peach-vase.png";
