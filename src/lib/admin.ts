@@ -54,29 +54,52 @@ export function useGeminiKey() {
   return v;
 }
 
-/** Returns admin-role check with loading state. */
+/** Returns admin-role check with loading state. Uses cached session to avoid network round-trip / deadlock. */
 export function useIsAdmin() {
   const [state, setState] = useState<{ loading: boolean; isAdmin: boolean }>({ loading: true, isAdmin: false });
   useEffect(() => {
     let cancel = false;
-    const check = async () => {
-      const { data: u } = await supabase.auth.getUser();
-      if (!u.user) {
+    let lastUid: string | null | undefined = undefined;
+
+    const checkFor = async (uid: string | null) => {
+      if (lastUid === uid) return;
+      lastUid = uid;
+      if (!uid) {
         if (!cancel) setState({ loading: false, isAdmin: false });
         return;
       }
-      const { data } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", u.user.id)
-        .eq("role", "admin")
-        .maybeSingle();
-      if (!cancel) setState({ loading: false, isAdmin: !!data });
+      try {
+        const { data } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", uid)
+          .eq("role", "admin")
+          .maybeSingle();
+        if (!cancel) setState({ loading: false, isAdmin: !!data });
+      } catch {
+        if (!cancel) setState({ loading: false, isAdmin: false });
+      }
     };
-    check();
-    const { data: sub } = supabase.auth.onAuthStateChange(() => check());
+
+    // 1) Use cached session synchronously — no network call, no deadlock.
+    supabase.auth.getSession().then(({ data }) => {
+      if (!cancel) checkFor(data.session?.user.id ?? null);
+    });
+
+    // 2) React to future auth changes; defer DB call out of the callback to avoid Supabase deadlock.
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      const uid = session?.user.id ?? null;
+      setTimeout(() => { if (!cancel) checkFor(uid); }, 0);
+    });
+
+    // 3) Safety net: never stay in loading state forever.
+    const timer = setTimeout(() => {
+      if (!cancel) setState((s) => (s.loading ? { loading: false, isAdmin: false } : s));
+    }, 5000);
+
     return () => {
       cancel = true;
+      clearTimeout(timer);
       sub.subscription.unsubscribe();
     };
   }, []);
