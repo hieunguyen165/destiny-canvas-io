@@ -158,14 +158,7 @@ export function useMyPoints() {
       setTimeout(() => load(uid), 0);
     });
 
-    const ch = supabase
-      .channel("profile-points-sync")
-      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "profiles" }, (payload) => {
-        if (uid && (payload.new as { id?: string })?.id === uid) load(uid);
-      })
-      .subscribe();
-
-    return () => { cancel = true; sub.subscription.unsubscribe(); supabase.removeChannel(ch); };
+    return () => { cancel = true; sub.subscription.unsubscribe(); };
   }, []);
   return points;
 }
