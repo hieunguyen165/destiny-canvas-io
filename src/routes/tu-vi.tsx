@@ -46,12 +46,19 @@ const FREE_FEATURES = [
   { icon: "🎯", label: "Số Cầu (12 Cầu)" },
   { icon: "🌸", label: "Đại Hạn — Tiểu Hạn" },
 ];
-const LOCKED = [
-  "Coi làm ăn nghề nghiệp gì thuận số",
-  "Thiên Can Hiệp Tháng Sanh — Tìm Nghề",
-  "Ngày Sang Hèn",
-  "Coi Số Có Nhà Hay Không",
-  "Số Kiếp Vợ Chồng",
+const LOCKED: { label: string; costKey: string }[] = [
+  { label: "Luận giải 12 cung", costKey: "ls_12cung" },
+  { label: "Đại Hạn — Tiểu Hạn (hiện tại)", costKey: "ls_dai_tieu_han" },
+  { label: "Toàn bộ Đại Hạn", costKey: "ls_toan_bo_dai_han" },
+  { label: "Tiểu hạn theo năm", costKey: "ls_tieu_han_nam" },
+  { label: "Diễn Cẩm Tam Thế", costKey: "ls_dien_cam_tam_the" },
+  { label: "Coi Số Sanh Tổng Luận", costKey: "ls_so_sanh_tong_luan" },
+  { label: "Số Cầu (12 Cầu)", costKey: "ls_so_cau" },
+  { label: "Coi làm ăn nghề nghiệp gì thuận số", costKey: "ls_nghe_nghiep" },
+  { label: "Thiên Can Hiệp Tháng Sanh — Tìm Nghề", costKey: "ls_thien_can" },
+  { label: "Ngày Sang Hèn", costKey: "ls_ngay_sang_hen" },
+  { label: "Coi Số Có Nhà Hay Không", costKey: "ls_so_co_nha" },
+  { label: "Số Kiếp Vợ Chồng", costKey: "ls_so_kiep_vc" },
 ];
 
 const LOAD_PHRASES = [
