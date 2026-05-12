@@ -3,7 +3,7 @@ import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { Sparkles, LogIn, UserPlus, LogOut, Menu, X, Shield, UserCircle, Coins } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { useIsAdmin, useMyPoints } from "@/lib/admin";
+import { useIsAdmin, useMyPoints, useAppSettings } from "@/lib/admin";
 import { cn } from "@/lib/utils";
 
 const NAV = [
