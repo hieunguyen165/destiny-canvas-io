@@ -64,7 +64,7 @@ function HomePage() {
               <Link to="/tu-vi"><Compass className="mr-2 h-5 w-5" />Xem Tử Vi Ngay</Link>
             </Button>
             <Button asChild size="lg" variant="outline" className="hover-scale">
-              <Link to="/van-menh"><Sparkles className="mr-2 h-5 w-5" />Luận Vận Mệnh</Link>
+              <Link to="/van-menh"><Moon className="mr-2 h-5 w-5" />Luận Vận Mệnh</Link>
             </Button>
             <Button asChild size="lg" variant="ghost">
               <a href="#tools">Khám phá thêm <ArrowRight className="ml-2 h-4 w-4" /></a>
