@@ -134,8 +134,7 @@ function HomePage() {
       <section className="mx-auto max-w-4xl px-4 pb-20 sm:px-6">
         <Card className="glass-card relative overflow-hidden border-primary/30 p-10 text-center shadow-elegant">
           <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-br from-primary/10 via-accent/10 to-primary/5" />
-          <Sparkles className="mx-auto h-10 w-10 animate-pulse text-primary" />
-          <h2 className="mt-4 font-display text-3xl font-bold sm:text-4xl">
+          <h2 className="font-display text-3xl font-bold sm:text-4xl">
             Sẵn sàng <span className="text-gradient">khải lộ thiên cơ</span>?
           </h2>
           <p className="mx-auto mt-3 max-w-xl text-muted-foreground">
