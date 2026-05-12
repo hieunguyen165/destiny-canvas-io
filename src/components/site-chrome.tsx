@@ -20,7 +20,7 @@ export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const path = useRouterState({ select: (s) => s.location.pathname });
-  const { isAdmin } = useIsAdmin();
+  
   const points = useMyPoints();
 
   useEffect(() => {
