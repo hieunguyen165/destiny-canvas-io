@@ -13,36 +13,47 @@ function getModel() {
   return createLovableAiGatewayProvider(key)(MODEL);
 }
 
+async function runViaGateway(prompt: string): Promise<string> {
+  const { text } = await generateText({ model: getModel(), prompt, maxOutputTokens: 8192 });
+  return text;
+}
+
 async function runText(prompt: string, geminiKey?: string): Promise<string> {
   if (geminiKey && geminiKey.trim()) {
     const key = geminiKey.trim();
     let lastErr = "";
     for (const model of GEMINI_DIRECT_MODELS) {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(key)}`;
-      const res = await fetch(url, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { maxOutputTokens: 8192, temperature: 0.7 },
-        }),
-      });
-      if (res.ok) {
-        const j = (await res.json()) as { candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }> };
-        const text = j.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("") ?? "";
-        if (text) return text;
-        lastErr = "Gemini không trả về nội dung";
-        continue;
+      try {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(key)}`;
+        const res = await fetch(url, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: { maxOutputTokens: 8192, temperature: 0.7 },
+          }),
+        });
+        if (res.ok) {
+          const j = (await res.json()) as { candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }> };
+          const text = j.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("") ?? "";
+          if (text) return text;
+          lastErr = "Gemini không trả về nội dung";
+          continue;
+        }
+        const body = await res.text();
+        lastErr = `Gemini ${model} ${res.status}: ${body.slice(0, 200)}`;
+      } catch (e) {
+        lastErr = e instanceof Error ? e.message : String(e);
       }
-      const body = await res.text();
-      lastErr = `Gemini ${model} ${res.status}: ${body.slice(0, 200)}`;
-      // 429/503: thử model kế tiếp; lỗi khác (401/400) thì dừng
-      if (res.status !== 429 && res.status !== 503) break;
     }
-    throw new Error(`API key của bạn bị giới hạn quota. ${lastErr}. Hãy thử lại sau hoặc nâng cấp gói Gemini.`);
+    // Direct Gemini hỏng → fallback sang Lovable AI Gateway để không gãy luồng người dùng
+    try {
+      return await runViaGateway(prompt);
+    } catch {
+      throw new Error(`Không gọi được AI. ${lastErr}`);
+    }
   }
-  const { text } = await generateText({ model: getModel(), prompt });
-  return text;
+  return runViaGateway(prompt);
 }
 
 const optKey = z.string().optional();
