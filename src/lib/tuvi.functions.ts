@@ -376,6 +376,7 @@ Trả về MARKDOWN với các phần: ## Tổng Quan, ## Tài Lộc, ## Công V
 const cungHDSchema = z.object({ cung: z.string().min(1) });
 
 export const luanCungHoangDao = createServerFn({ method: "POST" })
+  .middleware([attachAuthHeader, requireSupabaseAuth])
   .inputValidator((d: unknown) => cungHDSchema.parse(d))
   .handler(async ({ data }) => {
     const sharedKey = await getSharedAiKey();
