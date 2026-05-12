@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { cn } from "@/lib/utils";
 import { luanSau } from "@/lib/tuvi.functions";
 import { fallbackKetQua, type KetQuaLaSo } from "@/lib/laso";
-import { useMyPoints, spendPoints } from "@/lib/admin";
+import { useMyPoints } from "@/lib/admin";
 import { supabase } from "@/integrations/supabase/client";
 import { LaSoChart } from "@/components/la-so-chart";
 import { Prose } from "@/components/prose";
