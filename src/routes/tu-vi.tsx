@@ -138,7 +138,7 @@ function TuViPage() {
         </p>
       </section>
 
-      <section className="mx-auto max-w-3xl px-4 sm:px-6">
+      <section className="mx-auto max-w-5xl px-4 sm:px-6">
         <Card className="glass-card border-border/60 shadow-elegant p-6 sm:p-8">
           <form onSubmit={onSubmit} className="space-y-6">
             <Field icon={<User className="h-4 w-4" />} label="Họ và tên">
