@@ -46,12 +46,19 @@ const FREE_FEATURES = [
   { icon: "🎯", label: "Số Cầu (12 Cầu)" },
   { icon: "🌸", label: "Đại Hạn — Tiểu Hạn" },
 ];
-const LOCKED = [
-  "Coi làm ăn nghề nghiệp gì thuận số",
-  "Thiên Can Hiệp Tháng Sanh — Tìm Nghề",
-  "Ngày Sang Hèn",
-  "Coi Số Có Nhà Hay Không",
-  "Số Kiếp Vợ Chồng",
+const LOCKED: { label: string; costKey: string }[] = [
+  { label: "Luận giải 12 cung", costKey: "ls_12cung" },
+  { label: "Đại Hạn — Tiểu Hạn (hiện tại)", costKey: "ls_dai_tieu_han" },
+  { label: "Toàn bộ Đại Hạn", costKey: "ls_toan_bo_dai_han" },
+  { label: "Tiểu hạn theo năm", costKey: "ls_tieu_han_nam" },
+  { label: "Diễn Cẩm Tam Thế", costKey: "ls_dien_cam_tam_the" },
+  { label: "Coi Số Sanh Tổng Luận", costKey: "ls_so_sanh_tong_luan" },
+  { label: "Số Cầu (12 Cầu)", costKey: "ls_so_cau" },
+  { label: "Coi làm ăn nghề nghiệp gì thuận số", costKey: "ls_nghe_nghiep" },
+  { label: "Thiên Can Hiệp Tháng Sanh — Tìm Nghề", costKey: "ls_thien_can" },
+  { label: "Ngày Sang Hèn", costKey: "ls_ngay_sang_hen" },
+  { label: "Coi Số Có Nhà Hay Không", costKey: "ls_so_co_nha" },
+  { label: "Số Kiếp Vợ Chồng", costKey: "ls_so_kiep_vc" },
 ];
 
 const LOAD_PHRASES = [
@@ -224,10 +231,10 @@ function EmptyState() {
       </div>
       <ul className="mx-auto mt-3 grid max-w-md gap-2 text-left text-sm">
         {LOCKED.map((l) => (
-          <li key={l} className="flex items-center gap-2 rounded-md bg-background/40 px-3 py-2 opacity-70">
+          <li key={l.label} className="flex items-center gap-2 rounded-md bg-background/40 px-3 py-2">
             <span className="text-lg">🔒</span>
-            <span className="flex-1">{l}</span>
-            <Lock className="h-4 w-4 text-muted-foreground" />
+            <span className="flex-1">{l.label}</span>
+            <PriceBadge costKey={l.costKey} />
           </li>
         ))}
       </ul>
@@ -267,6 +274,23 @@ function MysticLoading() {
   );
 }
 
+function PriceBadge({ costKey }: { costKey: string }) {
+  const costs = useCosts();
+  const cost = costs[costKey] ?? 0;
+  if (cost <= 0) {
+    return (
+      <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
+        MIỄN PHÍ
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
+      <Lock className="h-3 w-3" /> {cost.toLocaleString("vi-VN")} điểm/lần
+    </span>
+  );
+}
+
 function SectionBox({
   index,
   title,
@@ -284,10 +308,11 @@ function SectionBox({
     <Card className="glass-card border-border/60 p-5 shadow-soft sm:p-6">
       <div className="mb-3 flex items-baseline gap-3 border-b border-dashed border-border pb-3">
         <span className="font-display text-2xl text-accent">{String(index).padStart(2, "0")}</span>
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <h3 className="font-display text-lg font-semibold text-primary sm:text-xl">{title}</h3>
           {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
         </div>
+        {deep && <PriceBadge costKey={deep.costKey} />}
       </div>
       <div className="text-sm leading-relaxed">{children}</div>
       {deep && <DeepDive muc={deep.muc} costKey={deep.costKey} tomTat={deep.tomTat} kq={deep.kq} />}
