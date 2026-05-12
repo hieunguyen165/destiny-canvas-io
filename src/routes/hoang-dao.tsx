@@ -12,7 +12,7 @@ import { useGeminiKey } from "@/lib/admin";
 export const Route = createFileRoute("/hoang-dao")({
   head: () => ({
     meta: [
-      { title: "12 Cung Hoàng Đạo — Diễn Cẩm Tam Thế" },
+      { title: "12 Cung Hoàng Đạo — Hệ Thống Thần Cơ" },
       { name: "description", content: "Xem tử vi tuần cho 12 cung hoàng đạo: tình yêu, sự nghiệp, tài chính, sức khoẻ." },
       { property: "og:title", content: "12 Cung Hoàng Đạo" },
       { property: "og:description", content: "Tử vi hàng tuần cho 12 cung hoàng đạo." },

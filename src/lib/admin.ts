@@ -54,7 +54,6 @@ export function useGeminiKey() {
   return v;
 }
 
-/** Returns admin-role check with loading state. Uses cached session to avoid network round-trip / deadlock. */
 export function useIsAdmin() {
   const [state, setState] = useState<{ loading: boolean; isAdmin: boolean }>({ loading: true, isAdmin: false });
   useEffect(() => {
@@ -81,18 +80,15 @@ export function useIsAdmin() {
       }
     };
 
-    // 1) Use cached session synchronously — no network call, no deadlock.
     supabase.auth.getSession().then(({ data }) => {
       if (!cancel) checkFor(data.session?.user.id ?? null);
     });
 
-    // 2) React to future auth changes; defer DB call out of the callback to avoid Supabase deadlock.
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
       const uid = session?.user.id ?? null;
       setTimeout(() => { if (!cancel) checkFor(uid); }, 0);
     });
 
-    // 3) Safety net: never stay in loading state forever.
     const timer = setTimeout(() => {
       if (!cancel) setState((s) => (s.loading ? { loading: false, isAdmin: false } : s));
     }, 5000);
@@ -104,4 +100,46 @@ export function useIsAdmin() {
     };
   }, []);
   return state;
+}
+
+/** Hook: trả số điểm hiện tại của user (null nếu chưa đăng nhập). Tự refresh khi profile đổi. */
+export function useMyPoints() {
+  const [points, setPoints] = useState<number | null>(null);
+  useEffect(() => {
+    let cancel = false;
+    let uid: string | null = null;
+
+    const load = async (id: string | null) => {
+      if (!id) { if (!cancel) setPoints(null); return; }
+      const { data } = await supabase.from("profiles").select("points").eq("id", id).maybeSingle();
+      if (!cancel) setPoints(data?.points ?? 0);
+    };
+
+    supabase.auth.getSession().then(({ data }) => {
+      uid = data.session?.user.id ?? null;
+      load(uid);
+    });
+
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
+      uid = s?.user.id ?? null;
+      setTimeout(() => load(uid), 0);
+    });
+
+    const ch = supabase
+      .channel("profile-points-sync")
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "profiles" }, (payload) => {
+        if (uid && (payload.new as { id?: string })?.id === uid) load(uid);
+      })
+      .subscribe();
+
+    return () => { cancel = true; sub.subscription.unsubscribe(); supabase.removeChannel(ch); };
+  }, []);
+  return points;
+}
+
+/** Trừ điểm cho user hiện tại; trả về số dư mới hoặc throw. */
+export async function spendPoints(amount: number, reason: string): Promise<number> {
+  const { data, error } = await supabase.rpc("spend_points", { _amount: amount, _reason: reason });
+  if (error) throw error;
+  return data as number;
 }

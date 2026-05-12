@@ -15,7 +15,7 @@ import { useGeminiKey } from "@/lib/admin";
 export const Route = createFileRoute("/van-menh")({
   head: () => ({
     meta: [
-      { title: "Vận Mệnh Năm — Diễn Cẩm Tam Thế" },
+      { title: "Vận Mệnh Năm — Hệ Thống Thần Cơ" },
       { name: "description", content: "Xem vận mệnh tổng quan theo năm cho 12 con giáp: tài lộc, công việc, tình duyên, sức khoẻ." },
       { property: "og:title", content: "Vận Mệnh Theo Tuổi" },
       { property: "og:description", content: "Tử vi vận mệnh năm cho 12 con giáp Việt Nam." },

@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VanMenhRouteImport } from './routes/van-menh'
+import { Route as TuViRouteImport } from './routes/tu-vi'
 import { Route as TaiKhoanRouteImport } from './routes/tai-khoan'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as NgayTotRouteImport } from './routes/ngay-tot'
@@ -22,6 +23,11 @@ import { Route as IndexRouteImport } from './routes/index'
 const VanMenhRoute = VanMenhRouteImport.update({
   id: '/van-menh',
   path: '/van-menh',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TuViRoute = TuViRouteImport.update({
+  id: '/tu-vi',
+  path: '/tu-vi',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TaiKhoanRoute = TaiKhoanRouteImport.update({
@@ -74,6 +80,7 @@ export interface FileRoutesByFullPath {
   '/ngay-tot': typeof NgayTotRoute
   '/signup': typeof SignupRoute
   '/tai-khoan': typeof TaiKhoanRoute
+  '/tu-vi': typeof TuViRoute
   '/van-menh': typeof VanMenhRoute
 }
 export interface FileRoutesByTo {
@@ -85,6 +92,7 @@ export interface FileRoutesByTo {
   '/ngay-tot': typeof NgayTotRoute
   '/signup': typeof SignupRoute
   '/tai-khoan': typeof TaiKhoanRoute
+  '/tu-vi': typeof TuViRoute
   '/van-menh': typeof VanMenhRoute
 }
 export interface FileRoutesById {
@@ -97,6 +105,7 @@ export interface FileRoutesById {
   '/ngay-tot': typeof NgayTotRoute
   '/signup': typeof SignupRoute
   '/tai-khoan': typeof TaiKhoanRoute
+  '/tu-vi': typeof TuViRoute
   '/van-menh': typeof VanMenhRoute
 }
 export interface FileRouteTypes {
@@ -110,6 +119,7 @@ export interface FileRouteTypes {
     | '/ngay-tot'
     | '/signup'
     | '/tai-khoan'
+    | '/tu-vi'
     | '/van-menh'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -121,6 +131,7 @@ export interface FileRouteTypes {
     | '/ngay-tot'
     | '/signup'
     | '/tai-khoan'
+    | '/tu-vi'
     | '/van-menh'
   id:
     | '__root__'
@@ -132,6 +143,7 @@ export interface FileRouteTypes {
     | '/ngay-tot'
     | '/signup'
     | '/tai-khoan'
+    | '/tu-vi'
     | '/van-menh'
   fileRoutesById: FileRoutesById
 }
@@ -144,6 +156,7 @@ export interface RootRouteChildren {
   NgayTotRoute: typeof NgayTotRoute
   SignupRoute: typeof SignupRoute
   TaiKhoanRoute: typeof TaiKhoanRoute
+  TuViRoute: typeof TuViRoute
   VanMenhRoute: typeof VanMenhRoute
 }
 
@@ -154,6 +167,13 @@ declare module '@tanstack/react-router' {
       path: '/van-menh'
       fullPath: '/van-menh'
       preLoaderRoute: typeof VanMenhRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tu-vi': {
+      id: '/tu-vi'
+      path: '/tu-vi'
+      fullPath: '/tu-vi'
+      preLoaderRoute: typeof TuViRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/tai-khoan': {
@@ -224,6 +244,7 @@ const rootRouteChildren: RootRouteChildren = {
   NgayTotRoute: NgayTotRoute,
   SignupRoute: SignupRoute,
   TaiKhoanRoute: TaiKhoanRoute,
+  TuViRoute: TuViRoute,
   VanMenhRoute: VanMenhRoute,
 }
 export const routeTree = rootRouteImport

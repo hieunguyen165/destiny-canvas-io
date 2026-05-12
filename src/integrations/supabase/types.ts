@@ -38,26 +38,56 @@ export type Database = {
       la_so_history: {
         Row: {
           created_at: string
+          guest_name: string | null
           ho_ten: string
           id: string
           input: Json
           result: Json
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
+          guest_name?: string | null
           ho_ten: string
           id?: string
           input: Json
           result: Json
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
+          guest_name?: string | null
           ho_ten?: string
           id?: string
           input?: Json
           result?: Json
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      points_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string | null
+          id: string
+          reason: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          reason?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          reason?: string | null
           user_id?: string
         }
         Relationships: []
@@ -67,18 +97,21 @@ export type Database = {
           created_at: string
           display_name: string | null
           id: string
+          points: number
           updated_at: string
         }
         Insert: {
           created_at?: string
           display_name?: string | null
           id: string
+          points?: number
           updated_at?: string
         }
         Update: {
           created_at?: string
           display_name?: string | null
           id?: string
+          points?: number
           updated_at?: string
         }
         Relationships: []
@@ -109,12 +142,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_add_points: {
+        Args: { _amount: number; _reason: string; _user_id: string }
+        Returns: undefined
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
         Returns: boolean
+      }
+      spend_points: {
+        Args: { _amount: number; _reason: string }
+        Returns: number
       }
     }
     Enums: {

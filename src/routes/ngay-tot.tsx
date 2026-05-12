@@ -15,7 +15,7 @@ import { useGeminiKey } from "@/lib/admin";
 export const Route = createFileRoute("/ngay-tot")({
   head: () => ({
     meta: [
-      { title: "Xem Ngày Tốt — Diễn Cẩm Tam Thế" },
+      { title: "Xem Ngày Tốt — Hệ Thống Thần Cơ" },
       { name: "description", content: "Tra cứu ngày tốt cho cưới hỏi, khai trương, động thổ, xuất hành theo can chi." },
       { property: "og:title", content: "Xem Ngày Tốt" },
       { property: "og:description", content: "Chọn việc làm và tháng để xem ngày hoàng đạo phù hợp." },

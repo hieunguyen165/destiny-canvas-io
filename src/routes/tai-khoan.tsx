@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { UserCircle, Save, History, Trash2, Eye, Loader2 } from "lucide-react";
+import { UserCircle, Save, History, Trash2, Eye, Loader2, Coins, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -8,9 +8,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
+import { useMyPoints } from "@/lib/admin";
 
 export const Route = createFileRoute("/tai-khoan")({
-  head: () => ({ meta: [{ title: "Tài khoản — Diễn Cẩm Tam Thế" }] }),
+  head: () => ({ meta: [{ title: "Tài khoản — Hệ Thống Thần Cơ" }] }),
   component: TaiKhoanPage,
 });
 
@@ -51,15 +52,80 @@ function TaiKhoanPage() {
         </div>
       </div>
 
+      <PointsCard />
+
       <Tabs defaultValue="profile">
         <TabsList className="mb-4">
           <TabsTrigger value="profile"><UserCircle className="mr-1.5 h-4 w-4" />Hồ sơ</TabsTrigger>
           <TabsTrigger value="history"><History className="mr-1.5 h-4 w-4" />Lá số đã lập</TabsTrigger>
+          <TabsTrigger value="points"><Coins className="mr-1.5 h-4 w-4" />Lịch sử điểm</TabsTrigger>
         </TabsList>
         <TabsContent value="profile"><ProfilePanel /></TabsContent>
         <TabsContent value="history"><MyHistoryPanel /></TabsContent>
+        <TabsContent value="points"><PointsHistoryPanel /></TabsContent>
       </Tabs>
     </div>
+  );
+}
+
+function PointsCard() {
+  const points = useMyPoints();
+  return (
+    <Card className="glass-card relative mb-6 overflow-hidden border-amber-500/30 p-6 shadow-elegant">
+      <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-br from-amber-500/10 via-background/40 to-primary/10" />
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 text-white shadow-lg">
+            <Coins className="h-7 w-7" />
+          </div>
+          <div>
+            <div className="text-xs uppercase tracking-wider text-muted-foreground">Số dư điểm</div>
+            <div className="font-display text-3xl font-bold text-gradient">
+              {points === null ? "…" : points.toLocaleString("vi-VN")}
+            </div>
+            <div className="text-xs text-muted-foreground">1 lần luận chi tiết = 2.000 điểm</div>
+          </div>
+        </div>
+        <Button onClick={() => toast.info("Tính năng nạp điểm đang được phát triển. Vui lòng liên hệ admin để được cộng điểm.")} className="gradient-primary text-primary-foreground shadow-elegant">
+          <Sparkles className="mr-1.5 h-4 w-4" />Nạp điểm</Button>
+      </div>
+    </Card>
+  );
+}
+
+type Tx = { id: string; amount: number; reason: string | null; created_at: string };
+function PointsHistoryPanel() {
+  const [rows, setRows] = useState<Tx[] | null>(null);
+  useEffect(() => {
+    (async () => {
+      const { data: u } = await supabase.auth.getUser();
+      if (!u.user) return;
+      const { data } = await supabase
+        .from("points_transactions")
+        .select("id,amount,reason,created_at")
+        .eq("user_id", u.user.id)
+        .order("created_at", { ascending: false });
+      setRows((data as Tx[]) ?? []);
+    })();
+  }, []);
+  if (!rows) return <Card className="glass-card p-6">Đang tải…</Card>;
+  if (rows.length === 0) return <Card className="glass-card p-8 text-center text-muted-foreground">Chưa có giao dịch điểm nào.</Card>;
+  return (
+    <Card className="glass-card p-6 shadow-elegant">
+      <div className="space-y-2">
+        {rows.map((r) => (
+          <div key={r.id} className="flex items-center justify-between rounded-md border border-border/60 bg-background/40 p-3">
+            <div className="min-w-0 flex-1">
+              <div className="truncate text-sm font-medium">{r.reason || "—"}</div>
+              <div className="text-xs text-muted-foreground">{new Date(r.created_at).toLocaleString("vi-VN")}</div>
+            </div>
+            <div className={`font-display text-lg font-bold ${r.amount >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
+              {r.amount >= 0 ? "+" : ""}{r.amount.toLocaleString("vi-VN")}
+            </div>
+          </div>
+        ))}
+      </div>
+    </Card>
   );
 }
 
