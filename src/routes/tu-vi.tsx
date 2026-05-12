@@ -17,6 +17,7 @@ import { useCosts } from "@/lib/costs";
 import { supabase } from "@/integrations/supabase/client";
 import { LaSoChart } from "@/components/la-so-chart";
 import { Prose } from "@/components/prose";
+import { SeoSection } from "@/components/seo-section";
 import { ChevronDown, Gift } from "lucide-react";
 import heroBg from "@/assets/hero-bg.jpg";
 import vase from "@/assets/peach-vase.png";
@@ -199,10 +200,27 @@ function TuViPage() {
         {m.data?.data && <KetQuaBoxes kq={m.data.data} />}
       </section>
 
+      <SeoSection
+        title="Lập lá số tử vi online theo phương pháp Diễn Cẩm Tam Thế"
+        intro="Lá số tử vi là bản đồ vận mệnh cá nhân, hình thành từ ngày, giờ, năm sinh và giới tính. Tử vi cổ truyền Việt Nam dựa trên 12 cung (Mệnh, Phụ Mẫu, Phúc Đức, Điền Trạch, Quan Lộc, Nô Bộc, Thiên Di, Tật Ách, Tài Bạch, Tử Tức, Phu Thê, Huynh Đệ) và hơn 100 sao tinh — giúp luận giải tính cách, sự nghiệp, hôn nhân, tài lộc, sức khoẻ, hậu vận."
+        blocks={[
+          { heading: "12 cung trong lá số tử vi", body: "Mỗi cung phản ánh một khía cạnh đời sống. Cung Mệnh là 'tôi', cung Tài Bạch chủ tiền bạc, cung Quan Lộc chủ công danh, cung Phu Thê chủ hôn nhân — đọc cung phải kết hợp với sao chính, sao phụ và Tam Hợp - Lục Hợp." },
+          { heading: "Đại hạn và tiểu hạn là gì?", body: "Đại hạn là chu kỳ 10 năm chiếu vào một cung; tiểu hạn là vận một năm. Phối hợp đại - tiểu hạn cho biết giai đoạn nào nên tiến, nên giữ, nên lùi." },
+          { heading: "Diễn Cẩm Tam Thế: Tiền - Trung - Hậu vận", body: "Phương pháp cổ truyền chia đời người thành ba giai đoạn rõ ràng. Hệ thống Thần Cơ tự động phân tích sao chiếu cho từng giai đoạn để bạn nhìn thấy bức tranh dài hạn." },
+          { heading: "Tử vi và 12 con giáp khác nhau ra sao?", body: "12 con giáp chỉ căn cứ năm sinh (can chi năm) — chỉ cho cái nhìn tổng quan. Tử vi chi tiết hơn nhiều vì kết hợp cả ngày, giờ, can chi tháng và 12 cung sao." },
+        ]}
+        faqs={[
+          { q: "Tôi không nhớ giờ sinh, lập lá số có chuẩn không?", a: "Giờ sinh quyết định cung Mệnh và cung Thân — thiếu giờ thì lá số chỉ chính xác phần lớn (ngày, tháng, năm), phần luận chi tiết về tính cách và hôn nhân sẽ kém chính xác hơn." },
+          { q: "Lá số tử vi của tôi có thay đổi theo thời gian không?", a: "Lá số gốc cố định theo ngày giờ sinh. Nhưng đại hạn - tiểu hạn thay đổi liên tục theo năm, vì vậy mỗi giai đoạn cuộc đời sẽ có vận khác nhau." },
+          { q: "Lập lá số tử vi miễn phí có chính xác không?", a: "Hệ thống tự động hoá tính toán cung, sao và can chi theo đúng phương pháp cổ truyền — phần luận giải chi tiết bằng AI có giá niêm yết minh bạch (tính theo điểm)." },
+        ]}
+      />
+
       <div className="h-20" />
     </div>
   );
 }
+
 
 function EmptyState() {
   return (
