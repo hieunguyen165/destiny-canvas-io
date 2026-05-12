@@ -330,6 +330,7 @@ export const lapLaSo = createServerFn({ method: "POST" })
 // Luận giải chuyên sâu cho từng mục — gọi AI khi user bấm "Xem thêm"
 const luanSauSchema = z.object({
   muc: z.string().min(1).max(120),
+  costKey: z.string().min(1).max(60),
   tomTat: z.string().min(1).max(2000),
   thongTin: z.object({
     hoTen: z.string(),
@@ -347,16 +348,8 @@ export const luanSau = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => luanSauSchema.parse(d))
   .handler(async ({ data, context }) => {
     const ctx = context as { supabase: any };
-    // Trừ điểm server-side qua RPC (kiểm tra số dư + log transaction). Throw nếu không đủ.
-    const { error: spendErr } = await ctx.supabase.rpc("spend_points", {
-      _amount: COST_LUAN_CHI_TIET,
-      _reason: `Luận chi tiết: ${data.muc}`,
-    });
-    if (spendErr) {
-      const msg = spendErr.message || "";
-      if (msg.includes("insufficient_points")) return { ok: false as const, error: "insufficient_points" };
-      return { ok: false as const, error: msg || "Không thể trừ điểm." };
-    }
+    const charge = await chargePoints(ctx.supabase, data.costKey, `Luận chi tiết: ${data.muc}`);
+    if (charge.error) return { ok: false as const, error: charge.error };
     const t = data.thongTin;
     const sharedKey = await getSharedAiKey();
     const r = await safeRun(
