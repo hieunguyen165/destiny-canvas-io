@@ -2,6 +2,22 @@ import { createServerFn } from "@tanstack/react-start";
 import { generateText } from "ai";
 import { z } from "zod";
 import { createLovableAiGatewayProvider } from "./ai-gateway";
+import { supabaseAdmin } from "@/integrations/supabase/client.server";
+
+/** Đọc khoá AI dùng chung từ app_settings (chỉ chạy trên server, dùng service role để bỏ qua RLS). */
+async function getSharedAiKey(): Promise<string | undefined> {
+  try {
+    const { data } = await supabaseAdmin
+      .from("app_settings")
+      .select("value")
+      .eq("key", "gemini_api_key")
+      .maybeSingle();
+    const v = (data?.value || "").trim();
+    return v || undefined;
+  } catch {
+    return undefined;
+  }
+}
 
 const MODEL = "google/gemini-2.5-pro";
 // Dùng flash cho free-tier (RPM/RPD cao hơn pro rất nhiều)
