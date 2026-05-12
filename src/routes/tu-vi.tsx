@@ -267,6 +267,23 @@ function MysticLoading() {
   );
 }
 
+function PriceBadge({ costKey }: { costKey: string }) {
+  const costs = useCosts();
+  const cost = costs[costKey] ?? 0;
+  if (cost <= 0) {
+    return (
+      <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
+        MIỄN PHÍ
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
+      <Lock className="h-3 w-3" /> {cost.toLocaleString("vi-VN")} điểm/lần
+    </span>
+  );
+}
+
 function SectionBox({
   index,
   title,
@@ -284,10 +301,11 @@ function SectionBox({
     <Card className="glass-card border-border/60 p-5 shadow-soft sm:p-6">
       <div className="mb-3 flex items-baseline gap-3 border-b border-dashed border-border pb-3">
         <span className="font-display text-2xl text-accent">{String(index).padStart(2, "0")}</span>
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <h3 className="font-display text-lg font-semibold text-primary sm:text-xl">{title}</h3>
           {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
         </div>
+        {deep && <PriceBadge costKey={deep.costKey} />}
       </div>
       <div className="text-sm leading-relaxed">{children}</div>
       {deep && <DeepDive muc={deep.muc} costKey={deep.costKey} tomTat={deep.tomTat} kq={deep.kq} />}
