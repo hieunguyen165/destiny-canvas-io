@@ -77,17 +77,11 @@ export function useGeminiKey() {
     load();
 
     const onLocal = () => load();
-    window.addEventListener(EVT, onLocal);
-
-    const channel = supabase
-      .channel("app_settings-sync")
-      .on("postgres_changes", { event: "*", schema: "public", table: "app_settings" }, () => load())
-      .subscribe();
+    if (typeof window !== "undefined") window.addEventListener(EVT, onLocal);
 
     return () => {
       cancel = true;
-      window.removeEventListener(EVT, onLocal);
-      supabase.removeChannel(channel);
+      if (typeof window !== "undefined") window.removeEventListener(EVT, onLocal);
     };
   }, []);
   return v;
@@ -164,14 +158,7 @@ export function useMyPoints() {
       setTimeout(() => load(uid), 0);
     });
 
-    const ch = supabase
-      .channel("profile-points-sync")
-      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "profiles" }, (payload) => {
-        if (uid && (payload.new as { id?: string })?.id === uid) load(uid);
-      })
-      .subscribe();
-
-    return () => { cancel = true; sub.subscription.unsubscribe(); supabase.removeChannel(ch); };
+    return () => { cancel = true; sub.subscription.unsubscribe(); };
   }, []);
   return points;
 }
