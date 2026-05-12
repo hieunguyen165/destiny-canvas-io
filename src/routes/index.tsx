@@ -75,7 +75,7 @@ function HomePage() {
           <div className="mt-12 grid grid-cols-3 gap-3 text-center sm:gap-6">
             <Stat k="14+" v="Mục vận mệnh" />
             <Stat k="12" v="Cung tử vi" />
-            <Stat k="AI" v="Luận giải sâu" />
+            <Stat k="14+" v="Mục luận giải" />
           </div>
         </div>
       </section>
