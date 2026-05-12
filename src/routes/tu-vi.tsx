@@ -316,6 +316,7 @@ function DeepDive({ muc, tomTat, kq }: { muc: string; tomTat: string; kq: KetQua
         },
       });
     },
+    onSuccess: (d) => { if (d && !d.ok) toast.error(d.error || "AI tạm thời không khả dụng"); },
     onError: (e) => {
       const msg = e instanceof Error ? e.message : "";
       if (msg.includes("insufficient_points")) toast.error(`Không đủ điểm! Cần ${COST_LUAN_CHI_TIET.toLocaleString("vi-VN")} điểm cho mỗi lần luận chi tiết.`);
