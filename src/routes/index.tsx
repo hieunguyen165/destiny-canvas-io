@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Sparkles, Compass, Calendar, Star, Heart, Phone, Hash, CalendarDays, ArrowRight, Shield, Scroll, BookOpen } from "lucide-react";
+import { Compass, Calendar, Star, Heart, Phone, Hash, CalendarDays, ArrowRight, Shield, Scroll, BookOpen, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import heroBg from "@/assets/hero-bg.jpg";
