@@ -333,7 +333,7 @@ function HistoryPanel() {
       setRows((data as Hist[]) ?? []);
     });
   };
-  useEffect(load, []);
+  useEffect(() => { load(); }, []);
 
   const onDelete = async (id: string) => {
     if (!confirm("Xoá lá số này?")) return;
