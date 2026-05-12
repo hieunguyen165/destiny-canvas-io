@@ -13,10 +13,11 @@ import { cn } from "@/lib/utils";
 import { luanSau } from "@/lib/tuvi.functions";
 import { fallbackKetQua, type KetQuaLaSo } from "@/lib/laso";
 import { useMyPoints } from "@/lib/admin";
+import { useCosts } from "@/lib/costs";
 import { supabase } from "@/integrations/supabase/client";
 import { LaSoChart } from "@/components/la-so-chart";
 import { Prose } from "@/components/prose";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Gift } from "lucide-react";
 import heroBg from "@/assets/hero-bg.jpg";
 import vase from "@/assets/peach-vase.png";
 
@@ -277,7 +278,7 @@ function SectionBox({
   title: string;
   subtitle?: string;
   children: React.ReactNode;
-  deep?: { muc: string; tomTat: string; kq: KetQuaLaSo };
+  deep?: { muc: string; costKey: string; tomTat: string; kq: KetQuaLaSo };
 }) {
   return (
     <Card className="glass-card border-border/60 p-5 shadow-soft sm:p-6">
@@ -289,38 +290,36 @@ function SectionBox({
         </div>
       </div>
       <div className="text-sm leading-relaxed">{children}</div>
-      {deep && <DeepDive muc={deep.muc} tomTat={deep.tomTat} kq={deep.kq} />}
+      {deep && <DeepDive muc={deep.muc} costKey={deep.costKey} tomTat={deep.tomTat} kq={deep.kq} />}
     </Card>
   );
 }
 
-const COST_LUAN_CHI_TIET = 2000;
-
-function DeepDive({ muc, tomTat, kq }: { muc: string; tomTat: string; kq: KetQuaLaSo }) {
+function DeepDive({ muc, costKey, tomTat, kq }: { muc: string; costKey: string; tomTat: string; kq: KetQuaLaSo }) {
   const luanSauFn = useServerFn(luanSau);
   const points = useMyPoints();
+  const costs = useCosts();
+  const cost = costs[costKey] ?? 0;
+  const isFree = cost <= 0;
   const [open, setOpen] = useState(false);
   const m = useMutation({
-    mutationFn: async () => {
-      // Server sẽ tự trừ điểm + kiểm soát quyền (requireSupabaseAuth + spend_points RPC).
-      return luanSauFn({
-        data: {
-          muc, tomTat,
-          thongTin: {
-            hoTen: kq.thongTinCoBan.hoTen,
-            gioiTinh: kq.thongTinCoBan.gioiTinh,
-            canChiNam: kq.thongTinCoBan.canChiNam,
-            banMenh: kq.thongTinCoBan.banMenh,
-            cungMenh: kq.thongTinCoBan.cungMenh,
-            cungThan: kq.thongTinCoBan.cungThan,
-            gioSinh: kq.thongTinCoBan.gioSinh,
-          },
+    mutationFn: async () => luanSauFn({
+      data: {
+        muc, costKey, tomTat,
+        thongTin: {
+          hoTen: kq.thongTinCoBan.hoTen,
+          gioiTinh: kq.thongTinCoBan.gioiTinh,
+          canChiNam: kq.thongTinCoBan.canChiNam,
+          banMenh: kq.thongTinCoBan.banMenh,
+          cungMenh: kq.thongTinCoBan.cungMenh,
+          cungThan: kq.thongTinCoBan.cungThan,
+          gioSinh: kq.thongTinCoBan.gioSinh,
         },
-      });
-    },
+      },
+    }),
     onSuccess: (d) => {
       if (d && !d.ok) {
-        if (d.error === "insufficient_points") toast.error(`Không đủ điểm! Cần ${COST_LUAN_CHI_TIET.toLocaleString("vi-VN")} điểm cho mỗi lần luận chi tiết.`);
+        if (d.error === "insufficient_points") toast.error(`Không đủ điểm! Cần ${cost.toLocaleString("vi-VN")} điểm.`);
         else toast.error(d.error || "AI tạm thời không khả dụng");
       }
     },
@@ -332,16 +331,18 @@ function DeepDive({ muc, tomTat, kq }: { muc: string; tomTat: string; kq: KetQua
   });
 
   const isGuest = points === null;
-  const notEnough = points !== null && points < COST_LUAN_CHI_TIET;
+  const notEnough = !isFree && points !== null && points < cost;
 
   const handleClick = () => {
-    if (isGuest) { toast.error("Vui lòng đăng nhập để dùng Luận Chi Tiết (2.000 điểm/lần)."); return; }
+    if (!isFree && isGuest) { toast.error(`Vui lòng đăng nhập để dùng Luận Chi Tiết (${cost.toLocaleString("vi-VN")} điểm/lần).`); return; }
     if (!open && !m.data && !m.isPending) {
-      if (notEnough) { toast.error(`Không đủ điểm! Cần ${COST_LUAN_CHI_TIET.toLocaleString("vi-VN")} điểm.`); return; }
+      if (notEnough) { toast.error(`Không đủ điểm! Cần ${cost.toLocaleString("vi-VN")} điểm.`); return; }
       m.mutate();
     }
     setOpen((v) => !v);
   };
+
+  const labelCost = isFree ? "MIỄN PHÍ" : `${cost.toLocaleString("vi-VN")} điểm`;
 
   return (
     <div className="mt-4 border-t border-dashed border-border/70 pt-3">
@@ -351,17 +352,17 @@ function DeepDive({ muc, tomTat, kq }: { muc: string; tomTat: string; kq: KetQua
         disabled={m.isPending}
         className={cn(
           "group inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all disabled:opacity-60",
-          isGuest || notEnough
+          (!isFree && (isGuest || notEnough))
             ? "border-amber-500/40 bg-amber-500/10 text-amber-700 hover:bg-amber-500/20"
             : "border-primary/30 bg-primary/5 text-primary hover:bg-primary/10",
         )}
-        title={isGuest ? "Đăng nhập để dùng" : `Tốn ${COST_LUAN_CHI_TIET.toLocaleString("vi-VN")} điểm/lần`}
+        title={isFree ? "Miễn phí" : `Tốn ${cost.toLocaleString("vi-VN")} điểm/lần`}
       >
         {m.isPending ? (
           <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Đang luận sâu…</>
         ) : (
           <>
-            {open ? "Thu gọn" : m.data ? "Xem lại Luận Chi Tiết" : `Luận Chi Tiết · ${COST_LUAN_CHI_TIET.toLocaleString("vi-VN")} điểm`}
+            {open ? "Thu gọn" : m.data ? "Xem lại Luận Chi Tiết" : `Luận Chi Tiết · ${labelCost}`}
             <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", open && "rotate-180")} />
           </>
         )}
@@ -374,8 +375,6 @@ function DeepDive({ muc, tomTat, kq }: { muc: string; tomTat: string; kq: KetQua
     </div>
   );
 }
-
-function KetQuaBoxes({ kq }: { kq: KetQuaLaSo }) {
   const t = kq.thongTinCoBan;
   return (
     <div className="space-y-5">
