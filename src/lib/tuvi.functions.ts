@@ -361,6 +361,7 @@ const vanMenhSchema = z.object({
 });
 
 export const vanMenh = createServerFn({ method: "POST" })
+  .middleware([attachAuthHeader, requireSupabaseAuth])
   .inputValidator((d: unknown) => vanMenhSchema.parse(d))
   .handler(async ({ data }) => {
     const sharedKey = await getSharedAiKey();
