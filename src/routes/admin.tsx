@@ -1,6 +1,6 @@
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Shield, KeyRound, Save, Users, History, Settings as SettingsIcon, Trash2, Eye, LayoutDashboard, Coins, Plus, UserCircle, FileText, Sparkles, Info } from "lucide-react";
+import { Shield, KeyRound, Save, Users, History, Settings as SettingsIcon, Trash2, Eye, LayoutDashboard, Coins, Plus, UserCircle, FileText, Sparkles, Info, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { setGeminiKey, useGeminiKey, useIsAdmin, useAppSettings, setAppSetting } from "@/lib/admin";
 import { checkIsAdmin } from "@/lib/admin.functions";
+import { COST_KEYS, DEFAULT_COSTS, fetchCosts, saveCosts } from "@/lib/costs";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Quản trị — Hệ Thống Thần Cơ" }] }),
