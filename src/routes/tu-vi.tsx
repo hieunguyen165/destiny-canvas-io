@@ -22,9 +22,9 @@ import vase from "@/assets/peach-vase.png";
 export const Route = createFileRoute("/tu-vi")({
   head: () => ({
     meta: [
-      { title: "Lập Lá Số Tử Vi — Diễn Cẩm Tam Thế" },
+      { title: "Lập Lá Số Tử Vi — Hệ Thống Thần Cơ" },
       { name: "description", content: "Lập lá số tử vi miễn phí, luận giải vận mệnh theo phương pháp Diễn Cẩm Tam Thế cổ truyền." },
-      { property: "og:title", content: "Lập Lá Số Tử Vi" },
+      { property: "og:title", content: "Lập Lá Số Tử Vi — Hệ Thống Thần Cơ" },
       { property: "og:description", content: "Khám phá vận mệnh qua lá số tử vi cổ truyền Việt Nam." },
     ],
   }),
