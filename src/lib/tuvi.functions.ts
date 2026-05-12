@@ -281,7 +281,7 @@ export const vanMenh = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const text = await runText(
       `Luận giải vận mệnh năm ${data.nam} cho người tuổi ${data.conGiap} bằng tiếng Việt, văn phong tử vi cổ truyền.
-Trả về MARKDOWN với các phần: ## 🌟 Tổng Quan, ## 💰 Tài Lộc, ## 💼 Công Việc, ## ❤️ Tình Duyên, ## 🌿 Sức Khoẻ, ## ⚠️ Lưu Ý, ## 🎨 Màu & Số May Mắn. Mỗi phần 2-3 câu súc tích.`,
+Trả về MARKDOWN với các phần: ## Tổng Quan, ## Tài Lộc, ## Công Việc, ## Tình Duyên, ## Sức Khoẻ, ## Lưu Ý, ## Màu & Số May Mắn. Mỗi phần 2-3 câu súc tích.`,
       data.geminiKey,
     );
     return { ok: true as const, content: text };
@@ -294,7 +294,7 @@ export const luanCungHoangDao = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const text = await runText(
       `Tử vi tuần này cho cung hoàng đạo ${data.cung} (phương Tây), bằng tiếng Việt.
-Markdown gồm: ## ✨ Tổng Quan Tuần, ## 💼 Sự Nghiệp, ## 💰 Tài Chính, ## ❤️ Tình Yêu, ## 🌿 Sức Khoẻ, ## 🍀 Lời Khuyên. Mỗi phần 2-3 câu.`,
+Markdown gồm: ## Tổng Quan Tuần, ## Sự Nghiệp, ## Tài Chính, ## Tình Yêu, ## Sức Khoẻ, ## Lời Khuyên. Mỗi phần 2-3 câu.`,
       data.geminiKey,
     );
     return { ok: true as const, content: text };
@@ -314,7 +314,7 @@ export const ngayTot = createServerFn({ method: "POST" })
       `Liệt kê 5-8 ngày tốt trong tháng ${data.thang}/${data.nam} (dương lịch) phù hợp cho việc "${data.loaiViec}" theo lịch can chi Việt Nam.
 Trả về MARKDOWN dạng bảng:
 | Ngày dương | Ngày âm | Can Chi | Giờ tốt | Lý do |
-Sau bảng thêm phần ## ⚠️ Ngày Cần Tránh (1-2 ngày xấu) và ## 🌿 Lời Khuyên (2 câu).`,
+Sau bảng thêm phần ## Ngày Cần Tránh (1-2 ngày xấu) và ## Lời Khuyên (2 câu).`,
       data.geminiKey,
     );
     return { ok: true as const, content: text };
