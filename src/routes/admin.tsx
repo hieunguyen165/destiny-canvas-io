@@ -76,11 +76,13 @@ function AdminPage() {
           <TabsTrigger value="dashboard"><LayoutDashboard className="mr-1.5 h-4 w-4" />Tổng quan</TabsTrigger>
           <TabsTrigger value="members"><Users className="mr-1.5 h-4 w-4" />Thành viên</TabsTrigger>
           <TabsTrigger value="history"><History className="mr-1.5 h-4 w-4" />Lịch sử lá số</TabsTrigger>
+          <TabsTrigger value="info"><Info className="mr-1.5 h-4 w-4" />Thông tin</TabsTrigger>
           <TabsTrigger value="settings"><SettingsIcon className="mr-1.5 h-4 w-4" />Cài đặt</TabsTrigger>
         </TabsList>
         <TabsContent value="dashboard"><Dashboard /></TabsContent>
         <TabsContent value="members"><MembersPanel /></TabsContent>
         <TabsContent value="history"><HistoryPanel /></TabsContent>
+        <TabsContent value="info"><InfoPanel /></TabsContent>
         <TabsContent value="settings"><SettingsPanel /></TabsContent>
       </Tabs>
     </div>
