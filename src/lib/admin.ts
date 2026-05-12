@@ -77,17 +77,11 @@ export function useGeminiKey() {
     load();
 
     const onLocal = () => load();
-    window.addEventListener(EVT, onLocal);
-
-    const channel = supabase
-      .channel("app_settings-sync")
-      .on("postgres_changes", { event: "*", schema: "public", table: "app_settings" }, () => load())
-      .subscribe();
+    if (typeof window !== "undefined") window.addEventListener(EVT, onLocal);
 
     return () => {
       cancel = true;
-      window.removeEventListener(EVT, onLocal);
-      supabase.removeChannel(channel);
+      if (typeof window !== "undefined") window.removeEventListener(EVT, onLocal);
     };
   }, []);
   return v;
