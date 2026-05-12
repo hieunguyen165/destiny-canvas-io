@@ -231,10 +231,10 @@ function EmptyState() {
       </div>
       <ul className="mx-auto mt-3 grid max-w-md gap-2 text-left text-sm">
         {LOCKED.map((l) => (
-          <li key={l} className="flex items-center gap-2 rounded-md bg-background/40 px-3 py-2 opacity-70">
+          <li key={l.label} className="flex items-center gap-2 rounded-md bg-background/40 px-3 py-2">
             <span className="text-lg">🔒</span>
-            <span className="flex-1">{l}</span>
-            <Lock className="h-4 w-4 text-muted-foreground" />
+            <span className="flex-1">{l.label}</span>
+            <PriceBadge costKey={l.costKey} />
           </li>
         ))}
       </ul>
