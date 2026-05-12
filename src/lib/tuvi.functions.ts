@@ -46,14 +46,27 @@ async function runText(prompt: string, geminiKey?: string): Promise<string> {
         lastErr = e instanceof Error ? e.message : String(e);
       }
     }
-    // Direct Gemini hỏng → fallback sang Lovable AI Gateway để không gãy luồng người dùng
     try {
       return await runViaGateway(prompt);
-    } catch {
-      throw new Error(`Không gọi được AI. ${lastErr}`);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      throw new Error(`AI không khả dụng. ${lastErr || msg}`);
     }
   }
   return runViaGateway(prompt);
+}
+
+/** Chạy 1 server-fn handler trả markdown an toàn — không bao giờ throw để tránh 500 SSR. */
+async function safeRun(prompt: string, geminiKey?: string): Promise<{ ok: true; content: string } | { ok: false; error: string }> {
+  try {
+    const content = await runText(prompt, geminiKey);
+    if (!content || !content.trim()) return { ok: false, error: "AI không trả về nội dung. Mời thử lại." };
+    return { ok: true, content };
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    console.error("[tuvi.runText] failed:", msg);
+    return { ok: false, error: msg || "AI tạm thời không khả dụng. Mời thử lại sau." };
+  }
 }
 
 const optKey = z.string().optional();
