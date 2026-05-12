@@ -14,6 +14,7 @@ import { Route as TuViRouteImport } from './routes/tu-vi'
 import { Route as TaiKhoanRouteImport } from './routes/tai-khoan'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as NgayTotRouteImport } from './routes/ngay-tot'
+import { Route as NapDiemRouteImport } from './routes/nap-diem'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LichAmRouteImport } from './routes/lich-am'
 import { Route as HoangDaoRouteImport } from './routes/hoang-dao'
@@ -43,6 +44,11 @@ const SignupRoute = SignupRouteImport.update({
 const NgayTotRoute = NgayTotRouteImport.update({
   id: '/ngay-tot',
   path: '/ngay-tot',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NapDiemRoute = NapDiemRouteImport.update({
+  id: '/nap-diem',
+  path: '/nap-diem',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -77,6 +83,7 @@ export interface FileRoutesByFullPath {
   '/hoang-dao': typeof HoangDaoRoute
   '/lich-am': typeof LichAmRoute
   '/login': typeof LoginRoute
+  '/nap-diem': typeof NapDiemRoute
   '/ngay-tot': typeof NgayTotRoute
   '/signup': typeof SignupRoute
   '/tai-khoan': typeof TaiKhoanRoute
@@ -89,6 +96,7 @@ export interface FileRoutesByTo {
   '/hoang-dao': typeof HoangDaoRoute
   '/lich-am': typeof LichAmRoute
   '/login': typeof LoginRoute
+  '/nap-diem': typeof NapDiemRoute
   '/ngay-tot': typeof NgayTotRoute
   '/signup': typeof SignupRoute
   '/tai-khoan': typeof TaiKhoanRoute
@@ -102,6 +110,7 @@ export interface FileRoutesById {
   '/hoang-dao': typeof HoangDaoRoute
   '/lich-am': typeof LichAmRoute
   '/login': typeof LoginRoute
+  '/nap-diem': typeof NapDiemRoute
   '/ngay-tot': typeof NgayTotRoute
   '/signup': typeof SignupRoute
   '/tai-khoan': typeof TaiKhoanRoute
@@ -116,6 +125,7 @@ export interface FileRouteTypes {
     | '/hoang-dao'
     | '/lich-am'
     | '/login'
+    | '/nap-diem'
     | '/ngay-tot'
     | '/signup'
     | '/tai-khoan'
@@ -128,6 +138,7 @@ export interface FileRouteTypes {
     | '/hoang-dao'
     | '/lich-am'
     | '/login'
+    | '/nap-diem'
     | '/ngay-tot'
     | '/signup'
     | '/tai-khoan'
@@ -140,6 +151,7 @@ export interface FileRouteTypes {
     | '/hoang-dao'
     | '/lich-am'
     | '/login'
+    | '/nap-diem'
     | '/ngay-tot'
     | '/signup'
     | '/tai-khoan'
@@ -153,6 +165,7 @@ export interface RootRouteChildren {
   HoangDaoRoute: typeof HoangDaoRoute
   LichAmRoute: typeof LichAmRoute
   LoginRoute: typeof LoginRoute
+  NapDiemRoute: typeof NapDiemRoute
   NgayTotRoute: typeof NgayTotRoute
   SignupRoute: typeof SignupRoute
   TaiKhoanRoute: typeof TaiKhoanRoute
@@ -195,6 +208,13 @@ declare module '@tanstack/react-router' {
       path: '/ngay-tot'
       fullPath: '/ngay-tot'
       preLoaderRoute: typeof NgayTotRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/nap-diem': {
+      id: '/nap-diem'
+      path: '/nap-diem'
+      fullPath: '/nap-diem'
+      preLoaderRoute: typeof NapDiemRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -241,6 +261,7 @@ const rootRouteChildren: RootRouteChildren = {
   HoangDaoRoute: HoangDaoRoute,
   LichAmRoute: LichAmRoute,
   LoginRoute: LoginRoute,
+  NapDiemRoute: NapDiemRoute,
   NgayTotRoute: NgayTotRoute,
   SignupRoute: SignupRoute,
   TaiKhoanRoute: TaiKhoanRoute,

@@ -6,7 +6,42 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { attachAuthHeader } from "./attach-auth";
 
-const COST_LUAN_CHI_TIET = 2000;
+const DEFAULT_COSTS_SERVER: Record<string, number> = {
+  ls_12cung: 2000, ls_dai_tieu_han: 2000, ls_toan_bo_dai_han: 2000,
+  ls_tieu_han_nam: 2000, ls_dien_cam_tam_the: 2000, ls_so_sanh_tong_luan: 2000,
+  ls_so_cau: 2000, ls_nghe_nghiep: 2000, ls_thien_can: 2000,
+  ls_ngay_sang_hen: 2000, ls_so_co_nha: 2000, ls_so_kiep_vc: 2000,
+  van_menh: 0, hoang_dao: 0, ngay_tot: 0, lich_am: 0,
+};
+
+/** Đọc bảng giá điểm (admin cấu hình) để biết mỗi mục cần bao nhiêu điểm. */
+async function getCost(key: string): Promise<number> {
+  try {
+    const { data } = await supabaseAdmin
+      .from("app_settings")
+      .select("value")
+      .eq("key", "feature_costs")
+      .maybeSingle();
+    if (!data?.value) return DEFAULT_COSTS_SERVER[key] ?? 0;
+    const parsed = JSON.parse(data.value) as Record<string, number>;
+    const v = parsed[key];
+    return typeof v === "number" && v >= 0 ? v : (DEFAULT_COSTS_SERVER[key] ?? 0);
+  } catch {
+    return DEFAULT_COSTS_SERVER[key] ?? 0;
+  }
+}
+
+/** Trừ điểm theo costKey. Trả về null khi miễn phí, hoặc { error } nếu không đủ. */
+async function chargePoints(supabase: any, costKey: string, reason: string): Promise<{ error?: string }> {
+  const cost = await getCost(costKey);
+  if (cost <= 0) return {};
+  const { error } = await supabase.rpc("spend_points", { _amount: cost, _reason: reason });
+  if (error) {
+    if ((error.message || "").includes("insufficient_points")) return { error: "insufficient_points" };
+    return { error: error.message || "Không thể trừ điểm." };
+  }
+  return {};
+}
 
 /** Đọc khoá AI dùng chung từ app_settings (chỉ chạy trên server, dùng service role để bỏ qua RLS). */
 async function getSharedAiKey(): Promise<string | undefined> {
@@ -295,6 +330,7 @@ export const lapLaSo = createServerFn({ method: "POST" })
 // Luận giải chuyên sâu cho từng mục — gọi AI khi user bấm "Xem thêm"
 const luanSauSchema = z.object({
   muc: z.string().min(1).max(120),
+  costKey: z.string().min(1).max(60),
   tomTat: z.string().min(1).max(2000),
   thongTin: z.object({
     hoTen: z.string(),
@@ -312,16 +348,8 @@ export const luanSau = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => luanSauSchema.parse(d))
   .handler(async ({ data, context }) => {
     const ctx = context as { supabase: any };
-    // Trừ điểm server-side qua RPC (kiểm tra số dư + log transaction). Throw nếu không đủ.
-    const { error: spendErr } = await ctx.supabase.rpc("spend_points", {
-      _amount: COST_LUAN_CHI_TIET,
-      _reason: `Luận chi tiết: ${data.muc}`,
-    });
-    if (spendErr) {
-      const msg = spendErr.message || "";
-      if (msg.includes("insufficient_points")) return { ok: false as const, error: "insufficient_points" };
-      return { ok: false as const, error: msg || "Không thể trừ điểm." };
-    }
+    const charge = await chargePoints(ctx.supabase, data.costKey, `Luận chi tiết: ${data.muc}`);
+    if (charge.error) return { ok: false as const, error: charge.error };
     const t = data.thongTin;
     const sharedKey = await getSharedAiKey();
     const r = await safeRun(
@@ -363,14 +391,16 @@ const vanMenhSchema = z.object({
 export const vanMenh = createServerFn({ method: "POST" })
   .middleware([attachAuthHeader, requireSupabaseAuth])
   .inputValidator((d: unknown) => vanMenhSchema.parse(d))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    const ctx = context as { supabase: any };
+    const charge = await chargePoints(ctx.supabase, "van_menh", `Luận vận mệnh ${data.conGiap} ${data.nam}`);
+    if (charge.error) return { ok: false as const, error: charge.error };
     const sharedKey = await getSharedAiKey();
-    const r = await safeRun(
+    return safeRun(
       `Luận giải vận mệnh năm ${data.nam} cho người tuổi ${data.conGiap} bằng tiếng Việt, văn phong tử vi cổ truyền.
 Trả về MARKDOWN với các phần: ## Tổng Quan, ## Tài Lộc, ## Công Việc, ## Tình Duyên, ## Sức Khoẻ, ## Lưu Ý, ## Màu & Số May Mắn. Mỗi phần 2-3 câu súc tích.`,
       sharedKey,
     );
-    return r;
   });
 
 const cungHDSchema = z.object({ cung: z.string().min(1) });
@@ -378,14 +408,16 @@ const cungHDSchema = z.object({ cung: z.string().min(1) });
 export const luanCungHoangDao = createServerFn({ method: "POST" })
   .middleware([attachAuthHeader, requireSupabaseAuth])
   .inputValidator((d: unknown) => cungHDSchema.parse(d))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    const ctx = context as { supabase: any };
+    const charge = await chargePoints(ctx.supabase, "hoang_dao", `Luận cung ${data.cung}`);
+    if (charge.error) return { ok: false as const, error: charge.error };
     const sharedKey = await getSharedAiKey();
-    const r = await safeRun(
+    return safeRun(
       `Tử vi tuần này cho cung hoàng đạo ${data.cung} (phương Tây), bằng tiếng Việt.
 Markdown gồm: ## Tổng Quan Tuần, ## Sự Nghiệp, ## Tài Chính, ## Tình Yêu, ## Sức Khoẻ, ## Lời Khuyên. Mỗi phần 2-3 câu.`,
       sharedKey,
     );
-    return r;
   });
 
 const ngayTotSchema = z.object({
@@ -397,16 +429,18 @@ const ngayTotSchema = z.object({
 export const ngayTot = createServerFn({ method: "POST" })
   .middleware([attachAuthHeader, requireSupabaseAuth])
   .inputValidator((d: unknown) => ngayTotSchema.parse(d))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    const ctx = context as { supabase: any };
+    const charge = await chargePoints(ctx.supabase, "ngay_tot", `Xem ngày tốt ${data.loaiViec} ${data.thang}/${data.nam}`);
+    if (charge.error) return { ok: false as const, error: charge.error };
     const sharedKey = await getSharedAiKey();
-    const r = await safeRun(
+    return safeRun(
       `Liệt kê 5-8 ngày tốt trong tháng ${data.thang}/${data.nam} (dương lịch) phù hợp cho việc "${data.loaiViec}" theo lịch can chi Việt Nam.
 Trả về MARKDOWN dạng bảng:
 | Ngày dương | Ngày âm | Can Chi | Giờ tốt | Lý do |
 Sau bảng thêm phần ## Ngày Cần Tránh (1-2 ngày xấu) và ## Lời Khuyên (2 câu).`,
       sharedKey,
     );
-    return r;
   });
 
 const lichAmSchema = z.object({
@@ -419,10 +453,13 @@ const lichAmSchema = z.object({
 export const doiLich = createServerFn({ method: "POST" })
   .middleware([attachAuthHeader, requireSupabaseAuth])
   .inputValidator((d: unknown) => lichAmSchema.parse(d))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    const ctx = context as { supabase: any };
+    const charge = await chargePoints(ctx.supabase, "lich_am", `Đổi lịch ${data.ngay}/${data.thang}/${data.nam}`);
+    if (charge.error) return { ok: false as const, error: charge.error };
     const huong = data.chieu === "d2a" ? "Dương lịch sang Âm lịch" : "Âm lịch sang Dương lịch";
     const sharedKey = await getSharedAiKey();
-    const r = await safeRun(
+    return safeRun(
       `Hãy đổi ngày ${data.ngay}/${data.thang}/${data.nam} từ ${huong} một cách chính xác.
 Trả về MARKDOWN ngắn gọn:
 - **Dương lịch:** ...
@@ -434,5 +471,4 @@ Trả về MARKDOWN ngắn gọn:
 - **Đánh giá:** Hoàng đạo / Hắc đạo, có nên làm việc lớn không (1 câu).`,
       sharedKey,
     );
-    return r;
   });

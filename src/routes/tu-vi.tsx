@@ -13,10 +13,11 @@ import { cn } from "@/lib/utils";
 import { luanSau } from "@/lib/tuvi.functions";
 import { fallbackKetQua, type KetQuaLaSo } from "@/lib/laso";
 import { useMyPoints } from "@/lib/admin";
+import { useCosts } from "@/lib/costs";
 import { supabase } from "@/integrations/supabase/client";
 import { LaSoChart } from "@/components/la-so-chart";
 import { Prose } from "@/components/prose";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Gift } from "lucide-react";
 import heroBg from "@/assets/hero-bg.jpg";
 import vase from "@/assets/peach-vase.png";
 
@@ -277,7 +278,7 @@ function SectionBox({
   title: string;
   subtitle?: string;
   children: React.ReactNode;
-  deep?: { muc: string; tomTat: string; kq: KetQuaLaSo };
+  deep?: { muc: string; costKey: string; tomTat: string; kq: KetQuaLaSo };
 }) {
   return (
     <Card className="glass-card border-border/60 p-5 shadow-soft sm:p-6">
@@ -289,38 +290,36 @@ function SectionBox({
         </div>
       </div>
       <div className="text-sm leading-relaxed">{children}</div>
-      {deep && <DeepDive muc={deep.muc} tomTat={deep.tomTat} kq={deep.kq} />}
+      {deep && <DeepDive muc={deep.muc} costKey={deep.costKey} tomTat={deep.tomTat} kq={deep.kq} />}
     </Card>
   );
 }
 
-const COST_LUAN_CHI_TIET = 2000;
-
-function DeepDive({ muc, tomTat, kq }: { muc: string; tomTat: string; kq: KetQuaLaSo }) {
+function DeepDive({ muc, costKey, tomTat, kq }: { muc: string; costKey: string; tomTat: string; kq: KetQuaLaSo }) {
   const luanSauFn = useServerFn(luanSau);
   const points = useMyPoints();
+  const costs = useCosts();
+  const cost = costs[costKey] ?? 0;
+  const isFree = cost <= 0;
   const [open, setOpen] = useState(false);
   const m = useMutation({
-    mutationFn: async () => {
-      // Server sẽ tự trừ điểm + kiểm soát quyền (requireSupabaseAuth + spend_points RPC).
-      return luanSauFn({
-        data: {
-          muc, tomTat,
-          thongTin: {
-            hoTen: kq.thongTinCoBan.hoTen,
-            gioiTinh: kq.thongTinCoBan.gioiTinh,
-            canChiNam: kq.thongTinCoBan.canChiNam,
-            banMenh: kq.thongTinCoBan.banMenh,
-            cungMenh: kq.thongTinCoBan.cungMenh,
-            cungThan: kq.thongTinCoBan.cungThan,
-            gioSinh: kq.thongTinCoBan.gioSinh,
-          },
+    mutationFn: async () => luanSauFn({
+      data: {
+        muc, costKey, tomTat,
+        thongTin: {
+          hoTen: kq.thongTinCoBan.hoTen,
+          gioiTinh: kq.thongTinCoBan.gioiTinh,
+          canChiNam: kq.thongTinCoBan.canChiNam,
+          banMenh: kq.thongTinCoBan.banMenh,
+          cungMenh: kq.thongTinCoBan.cungMenh,
+          cungThan: kq.thongTinCoBan.cungThan,
+          gioSinh: kq.thongTinCoBan.gioSinh,
         },
-      });
-    },
+      },
+    }),
     onSuccess: (d) => {
       if (d && !d.ok) {
-        if (d.error === "insufficient_points") toast.error(`Không đủ điểm! Cần ${COST_LUAN_CHI_TIET.toLocaleString("vi-VN")} điểm cho mỗi lần luận chi tiết.`);
+        if (d.error === "insufficient_points") toast.error(`Không đủ điểm! Cần ${cost.toLocaleString("vi-VN")} điểm.`);
         else toast.error(d.error || "AI tạm thời không khả dụng");
       }
     },
@@ -332,16 +331,18 @@ function DeepDive({ muc, tomTat, kq }: { muc: string; tomTat: string; kq: KetQua
   });
 
   const isGuest = points === null;
-  const notEnough = points !== null && points < COST_LUAN_CHI_TIET;
+  const notEnough = !isFree && points !== null && points < cost;
 
   const handleClick = () => {
-    if (isGuest) { toast.error("Vui lòng đăng nhập để dùng Luận Chi Tiết (2.000 điểm/lần)."); return; }
+    if (!isFree && isGuest) { toast.error(`Vui lòng đăng nhập để dùng Luận Chi Tiết (${cost.toLocaleString("vi-VN")} điểm/lần).`); return; }
     if (!open && !m.data && !m.isPending) {
-      if (notEnough) { toast.error(`Không đủ điểm! Cần ${COST_LUAN_CHI_TIET.toLocaleString("vi-VN")} điểm.`); return; }
+      if (notEnough) { toast.error(`Không đủ điểm! Cần ${cost.toLocaleString("vi-VN")} điểm.`); return; }
       m.mutate();
     }
     setOpen((v) => !v);
   };
+
+  const labelCost = isFree ? "MIỄN PHÍ" : `${cost.toLocaleString("vi-VN")} điểm`;
 
   return (
     <div className="mt-4 border-t border-dashed border-border/70 pt-3">
@@ -351,17 +352,17 @@ function DeepDive({ muc, tomTat, kq }: { muc: string; tomTat: string; kq: KetQua
         disabled={m.isPending}
         className={cn(
           "group inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all disabled:opacity-60",
-          isGuest || notEnough
+          (!isFree && (isGuest || notEnough))
             ? "border-amber-500/40 bg-amber-500/10 text-amber-700 hover:bg-amber-500/20"
             : "border-primary/30 bg-primary/5 text-primary hover:bg-primary/10",
         )}
-        title={isGuest ? "Đăng nhập để dùng" : `Tốn ${COST_LUAN_CHI_TIET.toLocaleString("vi-VN")} điểm/lần`}
+        title={isFree ? "Miễn phí" : `Tốn ${cost.toLocaleString("vi-VN")} điểm/lần`}
       >
         {m.isPending ? (
           <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Đang luận sâu…</>
         ) : (
           <>
-            {open ? "Thu gọn" : m.data ? "Xem lại Luận Chi Tiết" : `Luận Chi Tiết · ${COST_LUAN_CHI_TIET.toLocaleString("vi-VN")} điểm`}
+            {open ? "Thu gọn" : m.data ? "Xem lại Luận Chi Tiết" : `Luận Chi Tiết · ${labelCost}`}
             <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", open && "rotate-180")} />
           </>
         )}
@@ -407,6 +408,7 @@ function KetQuaBoxes({ kq }: { kq: KetQuaLaSo }) {
         title="Luận Giải 12 Cung"
         deep={{
           muc: "Luận giải 12 cung trong lá số",
+          costKey: "ls_12cung",
           tomTat: kq.luanGiai12Cung.map((c) => `${c.ten} (${c.saoChinh}): ${c.luanGiai}`).join(" | "),
           kq,
         }}
@@ -427,7 +429,7 @@ function KetQuaBoxes({ kq }: { kq: KetQuaLaSo }) {
       <SectionBox
         index={4}
         title="Đại Hạn — Tiểu Hạn (Hiện Tại)"
-        deep={{ muc: "Đại hạn và tiểu hạn hiện tại", tomTat: kq.daiTieuHan, kq }}
+        deep={{ muc: "Đại hạn và tiểu hạn hiện tại", costKey: "ls_dai_tieu_han", tomTat: kq.daiTieuHan, kq }}
       >
         <p className="whitespace-pre-line">{kq.daiTieuHan}</p>
       </SectionBox>
@@ -437,6 +439,7 @@ function KetQuaBoxes({ kq }: { kq: KetQuaLaSo }) {
         title="Toàn Bộ Đại Hạn"
         deep={{
           muc: "Toàn bộ chu kỳ đại hạn theo từng giai đoạn 10 năm",
+          costKey: "ls_toan_bo_dai_han",
           tomTat: kq.toanBoDaiHan.map((d) => `${d.giaiDoan} - ${d.cung}: ${d.luanGiai}`).join(" | "),
           kq,
         }}
@@ -468,6 +471,7 @@ function KetQuaBoxes({ kq }: { kq: KetQuaLaSo }) {
         title="Tiểu Hạn Theo Năm"
         deep={{
           muc: "Tiểu hạn theo từng năm sắp tới",
+          costKey: "ls_tieu_han_nam",
           tomTat: kq.tieuHanTheoNam.map((n) => `Năm ${n.nam} (${n.canChi}): ${n.luanGiai}`).join(" | "),
           kq,
         }}
@@ -489,7 +493,7 @@ function KetQuaBoxes({ kq }: { kq: KetQuaLaSo }) {
         index={7}
         title="Diễn Cẩm Tam Thế"
         subtitle="Tiền vận — Trung vận — Hậu vận"
-        deep={{ muc: "Diễn Cẩm Tam Thế: tiền vận, trung vận, hậu vận", tomTat: kq.dienCamTamThe, kq }}
+        deep={{ muc: "Diễn Cẩm Tam Thế: tiền vận, trung vận, hậu vận", costKey: "ls_dien_cam_tam_the", tomTat: kq.dienCamTamThe, kq }}
       >
         <p className="whitespace-pre-line">{kq.dienCamTamThe}</p>
       </SectionBox>
@@ -497,7 +501,7 @@ function KetQuaBoxes({ kq }: { kq: KetQuaLaSo }) {
       <SectionBox
         index={8}
         title="Coi Số Sanh Tổng Luận"
-        deep={{ muc: "Tổng luận số sanh — tổng quan vận mệnh cả đời", tomTat: kq.soSanhTongLuan, kq }}
+        deep={{ muc: "Tổng luận số sanh — tổng quan vận mệnh cả đời", costKey: "ls_so_sanh_tong_luan", tomTat: kq.soSanhTongLuan, kq }}
       >
         <p className="whitespace-pre-line">{kq.soSanhTongLuan}</p>
       </SectionBox>
@@ -507,6 +511,7 @@ function KetQuaBoxes({ kq }: { kq: KetQuaLaSo }) {
         title="Số Cầu (12 Cầu)"
         deep={{
           muc: "Số Cầu — luận 12 cầu (Tài, Quan, Ấn, Phúc, Thọ, Lộc, Mã, Khốc, Hư, Hình, Kiếp, Sát)",
+          costKey: "ls_so_cau",
           tomTat: kq.soCau.map((s) => `${s.ten} [${s.danhGia}]: ${s.luanGiai}`).join(" | "),
           kq,
         }}
@@ -537,7 +542,7 @@ function KetQuaBoxes({ kq }: { kq: KetQuaLaSo }) {
       <SectionBox
         index={10}
         title="Coi Làm Ăn — Nghề Nghiệp Gì Thuận Số"
-        deep={{ muc: "Nghề nghiệp và việc làm ăn thuận số", tomTat: kq.ngheNghiepThuanSo, kq }}
+        deep={{ muc: "Nghề nghiệp và việc làm ăn thuận số", costKey: "ls_nghe_nghiep", tomTat: kq.ngheNghiepThuanSo, kq }}
       >
         <p className="whitespace-pre-line">{kq.ngheNghiepThuanSo}</p>
       </SectionBox>
@@ -545,7 +550,7 @@ function KetQuaBoxes({ kq }: { kq: KetQuaLaSo }) {
       <SectionBox
         index={11}
         title="Thiên Can Hiệp Tháng Sanh — Tìm Nghề Nghiệp"
-        deep={{ muc: "Thiên can hiệp tháng sanh để tìm nghề nghiệp phù hợp", tomTat: kq.thienCanHiepThangSanh, kq }}
+        deep={{ muc: "Thiên can hiệp tháng sanh để tìm nghề nghiệp phù hợp", costKey: "ls_thien_can", tomTat: kq.thienCanHiepThangSanh, kq }}
       >
         <p className="whitespace-pre-line">{kq.thienCanHiepThangSanh}</p>
       </SectionBox>
@@ -553,7 +558,7 @@ function KetQuaBoxes({ kq }: { kq: KetQuaLaSo }) {
       <SectionBox
         index={12}
         title="Ngày Sang Hèn"
-        deep={{ muc: "Ngày sang hèn — luận khí chất ngày sinh", tomTat: kq.ngaySangHen, kq }}
+        deep={{ muc: "Ngày sang hèn — luận khí chất ngày sinh", costKey: "ls_ngay_sang_hen", tomTat: kq.ngaySangHen, kq }}
       >
         <p className="whitespace-pre-line">{kq.ngaySangHen}</p>
       </SectionBox>
@@ -561,7 +566,7 @@ function KetQuaBoxes({ kq }: { kq: KetQuaLaSo }) {
       <SectionBox
         index={13}
         title="Coi Số Có Nhà Hay Không"
-        deep={{ muc: "Số có nhà cửa, điền trạch hay không", tomTat: kq.soCoNha, kq }}
+        deep={{ muc: "Số có nhà cửa, điền trạch hay không", costKey: "ls_so_co_nha", tomTat: kq.soCoNha, kq }}
       >
         <p className="whitespace-pre-line">{kq.soCoNha}</p>
       </SectionBox>
@@ -569,7 +574,7 @@ function KetQuaBoxes({ kq }: { kq: KetQuaLaSo }) {
       <SectionBox
         index={14}
         title="Số Kiếp Vợ Chồng"
-        deep={{ muc: "Số kiếp vợ chồng — duyên phận hôn nhân", tomTat: kq.soKiepVoChong, kq }}
+        deep={{ muc: "Số kiếp vợ chồng — duyên phận hôn nhân", costKey: "ls_so_kiep_vc", tomTat: kq.soKiepVoChong, kq }}
       >
         <p className="whitespace-pre-line">{kq.soKiepVoChong}</p>
       </SectionBox>

@@ -116,6 +116,42 @@ export type Database = {
         }
         Relationships: []
       }
+      topup_requests: {
+        Row: {
+          amount_points: number
+          amount_vnd: number
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string
+          id: string
+          note: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          amount_points: number
+          amount_vnd: number
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          id?: string
+          note?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          amount_points?: number
+          amount_vnd?: number
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          id?: string
+          note?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -146,6 +182,7 @@ export type Database = {
         Args: { _amount: number; _reason: string; _user_id: string }
         Returns: undefined
       }
+      approve_topup: { Args: { _id: string }; Returns: undefined }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -153,6 +190,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      reject_topup: { Args: { _id: string }; Returns: undefined }
       spend_points: {
         Args: { _amount: number; _reason: string }
         Returns: number
