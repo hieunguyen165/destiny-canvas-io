@@ -39,6 +39,7 @@ function NgayTotPage() {
 
   const m = useMutation({
     mutationFn: (v: { loaiViec: string; thang: number; nam: number }) => fn({ data: { ...v, geminiKey } }),
+    onSuccess: (d) => { if (d && !d.ok) toast.error(d.error || "AI tạm thời không khả dụng"); },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Có lỗi xảy ra"),
   });
 
@@ -90,12 +91,12 @@ function NgayTotPage() {
         </div>
       </Card>
 
-      {m.data?.content && (
+      {m.data?.ok && m.data.content && (
         <Card className="glass-card mt-8 p-6 sm:p-10 shadow-elegant">
           <div className="mb-3 text-sm text-muted-foreground">
             Ngày tốt cho việc <strong className="text-foreground">{loaiViec}</strong> trong tháng <strong className="text-foreground">{thang}/{nam}</strong>
           </div>
-          <Prose content={m.data.content} />
+          <Prose content={m.data.ok ? m.data.content : ""} />
         </Card>
       )}
     </div>

@@ -36,6 +36,7 @@ function VanMenhPage() {
 
   const m = useMutation({
     mutationFn: (v: { conGiap: string; nam: number }) => fn({ data: { ...v, geminiKey } }),
+    onSuccess: (d) => { if (d && !d.ok) toast.error(d.error || "AI tạm thời không khả dụng"); },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Có lỗi xảy ra"),
   });
 
@@ -88,12 +89,12 @@ function VanMenhPage() {
         </div>
       </Card>
 
-      {m.data?.content && (
+      {m.data?.ok && m.data.content && (
         <Card className="glass-card mt-8 p-6 sm:p-10 shadow-elegant">
           <div className="mb-3 text-sm text-muted-foreground">
             Vận mệnh năm <strong className="text-foreground">{nam}</strong> cho người tuổi <strong className="text-foreground">{tuoi}</strong>
           </div>
-          <Prose content={m.data.content} />
+          <Prose content={m.data.ok ? m.data.content : ""} />
         </Card>
       )}
     </div>
