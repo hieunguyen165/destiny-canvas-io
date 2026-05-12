@@ -18,9 +18,50 @@ async function runViaGateway(prompt: string): Promise<string> {
   return text;
 }
 
+const BEEKNOEE_MODELS = ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-2.0-flash"];
+
+async function runViaBeeknoee(prompt: string, key: string): Promise<string> {
+  let lastErr = "";
+  for (const model of BEEKNOEE_MODELS) {
+    try {
+      const res = await fetch("https://platform.beeknoee.com/v1/chat/completions", {
+        method: "POST",
+        headers: { "content-type": "application/json", authorization: `Bearer ${key}` },
+        body: JSON.stringify({
+          model,
+          messages: [{ role: "user", content: prompt }],
+          max_tokens: 8192,
+          temperature: 0.7,
+        }),
+      });
+      if (res.ok) {
+        const j = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
+        const text = j.choices?.[0]?.message?.content ?? "";
+        if (text) return text;
+        lastErr = "Beeknoee không trả về nội dung";
+        continue;
+      }
+      lastErr = `Beeknoee ${model} ${res.status}: ${(await res.text()).slice(0, 200)}`;
+    } catch (e) {
+      lastErr = e instanceof Error ? e.message : String(e);
+    }
+  }
+  throw new Error(lastErr || "Beeknoee không khả dụng");
+}
+
 async function runText(prompt: string, geminiKey?: string): Promise<string> {
   if (geminiKey && geminiKey.trim()) {
     const key = geminiKey.trim();
+    // Khoá Beeknoee (OpenAI-compatible) — dùng prefix sk-bee-
+    if (key.startsWith("sk-bee-") || key.startsWith("sk-")) {
+      try {
+        return await runViaBeeknoee(prompt, key);
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        try { return await runViaGateway(prompt); }
+        catch { throw new Error(`AI không khả dụng. ${msg}`); }
+      }
+    }
     let lastErr = "";
     for (const model of GEMINI_DIRECT_MODELS) {
       try {
