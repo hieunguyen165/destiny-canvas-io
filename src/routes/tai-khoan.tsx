@@ -70,6 +70,27 @@ function TaiKhoanPage() {
   );
 }
 
+function AdminAccessCard() {
+  const { isAdmin, loading } = useIsAdmin();
+  if (loading || !isAdmin) return null;
+  return (
+    <Card className="glass-card mb-4 flex flex-wrap items-center justify-between gap-3 border-primary/30 p-5 shadow-elegant">
+      <div className="flex items-center gap-3">
+        <div className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-soft">
+          <Shield className="h-5 w-5" />
+        </div>
+        <div>
+          <div className="font-display text-base font-semibold">Khu Quản Trị</div>
+          <p className="text-xs text-muted-foreground">Bạn có quyền quản trị hệ thống.</p>
+        </div>
+      </div>
+      <Button asChild className="gradient-primary text-primary-foreground shadow-elegant">
+        <Link to="/admin"><Shield className="mr-1.5 h-4 w-4" />Truy cập trang quản trị</Link>
+      </Button>
+    </Card>
+  );
+}
+
 function PointsCard() {
   const points = useMyPoints();
   return (
