@@ -151,7 +151,6 @@ export function SiteFooter() {
       <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 md:grid-cols-3">
         <div>
           <div className="flex items-center gap-2 font-display text-lg font-semibold">
-            <Sparkles className="h-4 w-4 text-primary" />
             <span className="text-gradient">Hệ Thống Thần Cơ</span>
           </div>
           <p className="mt-2 whitespace-pre-line text-sm text-muted-foreground">{about}</p>
