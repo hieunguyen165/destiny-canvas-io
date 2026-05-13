@@ -89,11 +89,11 @@ function TuViPage() {
     onSuccess: async (res, vars) => {
       try {
         const { data: u } = await supabase.auth.getUser();
-        // Chỉ lưu lịch sử cho thành viên đã đăng nhập (khách vãng lai không lưu để bảo vệ dữ liệu cá nhân).
-        if (res?.data && u.user?.id) {
+        if (res?.data) {
+          const uid = u.user?.id ?? null;
           await supabase.from("la_so_history").insert({
-            user_id: u.user.id,
-            guest_name: null,
+            user_id: uid,
+            guest_name: uid ? null : vars.hoTen,
             ho_ten: vars.hoTen,
             input: vars,
             result: res.data,
