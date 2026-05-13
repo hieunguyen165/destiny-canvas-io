@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { Sparkles, LogIn, UserPlus, LogOut, Menu, X, UserCircle, Coins } from "lucide-react";
+import { LogIn, UserPlus, LogOut, Menu, X, UserCircle, Coins } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useMyPoints, useAppSettings } from "@/lib/admin";
@@ -38,7 +38,6 @@ export function SiteHeader() {
     <header className="sticky top-0 z-40 border-b border-border/40 bg-background/70 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
         <Link to="/" className="flex items-center gap-2 font-display text-xl font-semibold">
-          <Sparkles className="h-5 w-5 text-primary" />
           <span className="text-gradient">Hệ Thống Thần Cơ</span>
         </Link>
 
@@ -152,7 +151,6 @@ export function SiteFooter() {
       <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 md:grid-cols-3">
         <div>
           <div className="flex items-center gap-2 font-display text-lg font-semibold">
-            <Sparkles className="h-4 w-4 text-primary" />
             <span className="text-gradient">Hệ Thống Thần Cơ</span>
           </div>
           <p className="mt-2 whitespace-pre-line text-sm text-muted-foreground">{about}</p>
