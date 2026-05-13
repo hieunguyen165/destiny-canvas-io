@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { Sparkles, LogIn, UserPlus, LogOut, Menu, X, UserCircle, Coins } from "lucide-react";
+import { LogIn, UserPlus, LogOut, Menu, X, UserCircle, Coins } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useMyPoints, useAppSettings } from "@/lib/admin";
