@@ -56,8 +56,8 @@ function HomePage() {
             <br />Của Bạn
           </h1>
           <p className="mx-auto mt-5 max-w-2xl animate-fade-in text-base text-muted-foreground sm:text-lg">
-            Hệ thống <strong>Tử Vi Đẩu Số</strong> theo phương pháp <strong>Diễn Cẩm Tam Thế</strong> cổ truyền,
-            giúp bạn thấu hiểu bản thân, đón lành tránh dữ và làm chủ tương lai.
+            Hệ thống luận giải <strong>Tử Vi Đẩu Số</strong> ứng dụng phương pháp <strong>Diễn Cầm Tam Thế</strong> cổ truyền,
+            giúp bạn khám phá vận mệnh, thấu hiểu bản thân và định hướng tương lai theo tinh thần Đông phương huyền học.
           </p>
           <div className="mt-8 flex animate-fade-in flex-wrap justify-center gap-3">
             <Button asChild size="lg" className="gradient-primary text-primary-foreground shadow-elegant hover-scale">
