@@ -1228,3 +1228,86 @@ function PostEditor({ post, onBack }: { post: Post | null; onBack: () => void })
   );
 }
 
+/* ─── SEO SETTINGS (verification + analytics) ─── */
+const SEO_FIELDS: { key: string; label: string; placeholder: string; hint?: string; textarea?: boolean }[] = [
+  { key: "seo_google_verification", label: "Google Search Console", placeholder: "Mã xác minh (content của thẻ google-site-verification)", hint: "Search Console → Cài đặt → Xác minh quyền sở hữu → Thẻ HTML. Dán giá trị content." },
+  { key: "seo_bing_verification", label: "Bing Webmaster Tools", placeholder: "Mã xác minh msvalidate.01", hint: "Bing Webmaster → Add site → HTML Meta Tag." },
+  { key: "seo_coccoc_verification", label: "Cốc Cốc Webmaster", placeholder: "Mã xác minh coccoc-verification", hint: "webmaster.coccoc.com → Thêm website → Thẻ HTML." },
+  { key: "seo_yandex_verification", label: "Yandex Webmaster", placeholder: "Mã xác minh yandex-verification" },
+  { key: "seo_ga_measurement_id", label: "Google Analytics (GA4)", placeholder: "G-XXXXXXXXXX", hint: "Measurement ID dạng G-XXXXXXXXXX. Hệ thống tự nhúng gtag.js." },
+  { key: "seo_gtm_id", label: "Google Tag Manager", placeholder: "GTM-XXXXXXX" },
+  { key: "seo_fb_pixel_id", label: "Facebook Pixel ID", placeholder: "vd. 1234567890123456" },
+  { key: "seo_head_extra", label: "Thẻ <head> tuỳ biến (nâng cao)", placeholder: "<meta name=\"...\"> hoặc <script>...</script>", hint: "Dán nguyên thẻ HTML; sẽ được chèn vào <head>. Chỉ dùng nguồn tin cậy.", textarea: true },
+];
+
+function SeoPanel() {
+  const initial = useAppSettings(SEO_FIELDS.map((f) => f.key));
+  const [vals, setVals] = useState<Record<string, string>>({});
+  const [saving, setSaving] = useState(false);
+  useEffect(() => { setVals(initial); }, [JSON.stringify(initial)]);
+
+  const onSave = async () => {
+    setSaving(true);
+    try {
+      await Promise.all(SEO_FIELDS.map((f) => setAppSetting(f.key, (vals[f.key] ?? "").trim())));
+      toast.success("Đã lưu cấu hình SEO. Tải lại trang để xem hiệu lực đầy đủ.");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Lỗi lưu");
+    } finally { setSaving(false); }
+  };
+
+  return (
+    <div className="space-y-4">
+      <Card className="glass-card p-6 shadow-elegant">
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <Search className="h-5 w-5 text-primary" />
+            <h3 className="font-display text-lg font-semibold">Xác minh & theo dõi SEO</h3>
+          </div>
+          <Button onClick={onSave} disabled={saving} className="gradient-primary text-primary-foreground">
+            <Save className="mr-1.5 h-4 w-4" />{saving ? "Đang lưu…" : "Lưu cấu hình"}
+          </Button>
+        </div>
+        <p className="mb-4 text-xs text-muted-foreground">
+          Khai báo mã xác minh của Search Console / Bing / Cốc Cốc / Yandex và ID Analytics / GTM / Pixel.
+          Hệ thống sẽ tự chèn các thẻ tương ứng vào <code>&lt;head&gt;</code> trên toàn bộ website.
+        </p>
+        <div className="grid gap-4 md:grid-cols-2">
+          {SEO_FIELDS.map((f) => (
+            <div key={f.key} className={f.textarea ? "md:col-span-2" : ""}>
+              <Label className="mb-1.5 block text-sm font-semibold">{f.label}</Label>
+              {f.textarea ? (
+                <Textarea
+                  value={vals[f.key] ?? ""}
+                  onChange={(e) => setVals((v) => ({ ...v, [f.key]: e.target.value }))}
+                  placeholder={f.placeholder}
+                  className="min-h-[120px] font-mono text-xs"
+                />
+              ) : (
+                <Input
+                  value={vals[f.key] ?? ""}
+                  onChange={(e) => setVals((v) => ({ ...v, [f.key]: e.target.value }))}
+                  placeholder={f.placeholder}
+                />
+              )}
+              {f.hint && <p className="mt-1 text-[11px] text-muted-foreground">{f.hint}</p>}
+            </div>
+          ))}
+        </div>
+      </Card>
+
+      <Card className="glass-card p-6 shadow-elegant">
+        <h4 className="mb-2 font-display text-sm font-semibold">Liên kết nhanh</h4>
+        <ul className="grid gap-2 text-sm sm:grid-cols-2">
+          <li><a className="text-primary hover:underline" href="https://search.google.com/search-console" target="_blank" rel="noreferrer">Google Search Console ↗</a></li>
+          <li><a className="text-primary hover:underline" href="https://analytics.google.com" target="_blank" rel="noreferrer">Google Analytics ↗</a></li>
+          <li><a className="text-primary hover:underline" href="https://tagmanager.google.com" target="_blank" rel="noreferrer">Google Tag Manager ↗</a></li>
+          <li><a className="text-primary hover:underline" href="https://www.bing.com/webmasters" target="_blank" rel="noreferrer">Bing Webmaster Tools ↗</a></li>
+          <li><a className="text-primary hover:underline" href="https://webmaster.coccoc.com" target="_blank" rel="noreferrer">Cốc Cốc Webmaster ↗</a></li>
+          <li><a className="text-primary hover:underline" href="https://webmaster.yandex.com" target="_blank" rel="noreferrer">Yandex Webmaster ↗</a></li>
+        </ul>
+      </Card>
+    </div>
+  );
+}
+
