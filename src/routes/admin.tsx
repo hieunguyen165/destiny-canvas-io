@@ -76,36 +76,98 @@ function AdminPage() {
     );
   }
 
+  return <AdminShell email={email} />;
+}
+
+const ADMIN_MENU = [
+  { key: "dashboard", label: "Tổng quan", icon: LayoutDashboard },
+  { key: "members", label: "Thành viên", icon: Users },
+  { key: "topups", label: "Nạp điểm", icon: Wallet },
+  { key: "pricing", label: "Giá điểm", icon: Coins },
+  { key: "history", label: "Lịch sử lá số", icon: History },
+  { key: "posts", label: "Bài viết SEO", icon: Newspaper },
+  { key: "info", label: "Thông tin", icon: Info },
+  { key: "settings", label: "Cài đặt", icon: SettingsIcon },
+] as const;
+
+type AdminKey = (typeof ADMIN_MENU)[number]["key"];
+
+function AdminShell({ email }: { email: string }) {
+  const [active, setActive] = useState<AdminKey>(() => {
+    if (typeof window === "undefined") return "dashboard";
+    const h = window.location.hash.replace("#", "") as AdminKey;
+    return ADMIN_MENU.some((m) => m.key === h) ? h : "dashboard";
+  });
+  useEffect(() => {
+    if (typeof window !== "undefined") window.history.replaceState(null, "", `#${active}`);
+  }, [active]);
+  const current = ADMIN_MENU.find((m) => m.key === active)!;
+
   return (
-    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
-      <div className="mb-6 flex items-center gap-3">
-        <div className="inline-flex h-10 w-10 items-center justify-center rounded-full gradient-primary text-primary-foreground shadow-elegant">
-          <Shield className="h-5 w-5" />
+    <div className="mx-auto flex max-w-[1400px] gap-6 px-4 py-8 sm:px-6">
+      {/* Sidebar */}
+      <aside className="sticky top-20 hidden h-[calc(100vh-6rem)] w-64 shrink-0 self-start overflow-y-auto rounded-2xl border border-border/60 bg-background/60 p-4 shadow-soft backdrop-blur lg:block">
+        <div className="mb-4 flex items-center gap-2.5 border-b border-border/50 pb-4">
+          <div className="inline-flex h-9 w-9 items-center justify-center rounded-lg gradient-primary text-primary-foreground shadow-elegant">
+            <Shield className="h-4 w-4" />
+          </div>
+          <div className="min-w-0">
+            <div className="font-display text-sm font-semibold">Khu Quản Trị</div>
+            <div className="truncate text-[10px] text-muted-foreground">{email}</div>
+          </div>
         </div>
-        <div>
-          <h1 className="font-display text-3xl font-bold">Khu Quản Trị</h1>
-          <p className="text-xs text-muted-foreground">Đang đăng nhập: {email}</p>
+        <nav className="space-y-1">
+          {ADMIN_MENU.map((m) => {
+            const Icon = m.icon;
+            const on = m.key === active;
+            return (
+              <button
+                key={m.key}
+                onClick={() => setActive(m.key)}
+                className={`flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                  on
+                    ? "bg-primary/12 text-primary shadow-soft"
+                    : "text-foreground/75 hover:bg-accent hover:text-foreground"
+                }`}
+              >
+                <Icon className="h-4 w-4" />
+                {m.label}
+              </button>
+            );
+          })}
+        </nav>
+        <div className="mt-6 border-t border-border/50 pt-4">
+          <Button asChild variant="outline" size="sm" className="w-full">
+            <Link to="/"><ChevronLeft className="mr-1.5 h-3.5 w-3.5" />Về trang chủ</Link>
+          </Button>
         </div>
+      </aside>
+
+      {/* Mobile select */}
+      <div className="lg:hidden fixed bottom-4 left-1/2 z-30 -translate-x-1/2">
+        <select
+          value={active}
+          onChange={(e) => setActive(e.target.value as AdminKey)}
+          className="rounded-full border border-border bg-background/95 px-4 py-2 text-sm font-semibold shadow-elegant backdrop-blur"
+        >
+          {ADMIN_MENU.map((m) => <option key={m.key} value={m.key}>{m.label}</option>)}
+        </select>
       </div>
 
-      <Tabs defaultValue="dashboard">
-        <TabsList className="mb-4 flex-wrap">
-          <TabsTrigger value="dashboard"><LayoutDashboard className="mr-1.5 h-4 w-4" />Tổng quan</TabsTrigger>
-          <TabsTrigger value="members"><Users className="mr-1.5 h-4 w-4" />Thành viên</TabsTrigger>
-          <TabsTrigger value="topups"><Wallet className="mr-1.5 h-4 w-4" />Nạp điểm</TabsTrigger>
-          <TabsTrigger value="pricing"><Coins className="mr-1.5 h-4 w-4" />Giá điểm</TabsTrigger>
-          <TabsTrigger value="history"><History className="mr-1.5 h-4 w-4" />Lịch sử lá số</TabsTrigger>
-          <TabsTrigger value="info"><Info className="mr-1.5 h-4 w-4" />Thông tin</TabsTrigger>
-          <TabsTrigger value="settings"><SettingsIcon className="mr-1.5 h-4 w-4" />Cài đặt</TabsTrigger>
-        </TabsList>
-        <TabsContent value="dashboard"><Dashboard /></TabsContent>
-        <TabsContent value="members"><MembersPanel /></TabsContent>
-        <TabsContent value="topups"><TopupsPanel /></TabsContent>
-        <TabsContent value="pricing"><PricingPanel /></TabsContent>
-        <TabsContent value="history"><HistoryPanel /></TabsContent>
-        <TabsContent value="info"><InfoPanel /></TabsContent>
-        <TabsContent value="settings"><SettingsPanel /></TabsContent>
-      </Tabs>
+      <main className="min-w-0 flex-1">
+        <div className="mb-5 flex items-center gap-3">
+          <current.icon className="h-6 w-6 text-primary" />
+          <h1 className="font-display text-2xl font-bold sm:text-3xl">{current.label}</h1>
+        </div>
+        {active === "dashboard" && <Dashboard />}
+        {active === "members" && <MembersPanel />}
+        {active === "topups" && <TopupsPanel />}
+        {active === "pricing" && <PricingPanel />}
+        {active === "history" && <HistoryPanel />}
+        {active === "posts" && <PostsPanel />}
+        {active === "info" && <InfoPanel />}
+        {active === "settings" && <SettingsPanel />}
+      </main>
     </div>
   );
 }
