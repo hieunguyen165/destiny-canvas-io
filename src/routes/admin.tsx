@@ -1,6 +1,6 @@
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Shield, KeyRound, Save, Users, History, Settings as SettingsIcon, Trash2, Eye, LayoutDashboard, Coins, Plus, UserCircle, FileText, Sparkles, Info, Wallet, Newspaper, Edit3, ExternalLink, ChevronLeft, Image as ImageIcon, Bold, Italic, Heading2, List, Link2, Wand2, Loader2, Gauge } from "lucide-react";
+import { Shield, KeyRound, Save, Users, History, Settings as SettingsIcon, Trash2, Eye, LayoutDashboard, Coins, Plus, UserCircle, FileText, Sparkles, Info, Wallet, Newspaper, Edit3, ExternalLink, ChevronLeft, Image as ImageIcon, Bold, Italic, Heading2, List, Link2, Wand2, Loader2, Gauge, Search } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -89,6 +89,7 @@ const ADMIN_MENU = [
   { key: "pricing", label: "Giá điểm", icon: Coins },
   { key: "history", label: "Lịch sử lá số", icon: History },
   { key: "posts", label: "Bài viết SEO", icon: Newspaper },
+  { key: "seo", label: "Cài đặt SEO", icon: Search },
   { key: "info", label: "Thông tin", icon: Info },
   { key: "settings", label: "Cài đặt", icon: SettingsIcon },
 ] as const;
@@ -168,6 +169,7 @@ function AdminShell({ email }: { email: string }) {
         {active === "pricing" && <PricingPanel />}
         {active === "history" && <HistoryPanel />}
         {active === "posts" && <PostsPanel />}
+        {active === "seo" && <SeoPanel />}
         {active === "info" && <InfoPanel />}
         {active === "settings" && <SettingsPanel />}
       </main>
