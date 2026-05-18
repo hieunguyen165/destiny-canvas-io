@@ -1,6 +1,6 @@
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { Shield, KeyRound, Save, Users, History, Settings as SettingsIcon, Trash2, Eye, LayoutDashboard, Coins, Plus, UserCircle, FileText, Sparkles, Info, Wallet, Newspaper, Edit3, ExternalLink, ChevronLeft } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Shield, KeyRound, Save, Users, History, Settings as SettingsIcon, Trash2, Eye, LayoutDashboard, Coins, Plus, UserCircle, FileText, Sparkles, Info, Wallet, Newspaper, Edit3, ExternalLink, ChevronLeft, Image as ImageIcon, Bold, Italic, Heading2, List, Link2, Wand2, Loader2, Gauge } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -13,6 +13,8 @@ import { setGeminiKey, useGeminiKey, useIsAdmin, useAppSettings, setAppSetting }
 import { checkIsAdmin } from "@/lib/admin.functions";
 import { COST_KEYS, DEFAULT_COSTS, fetchCosts, saveCosts } from "@/lib/costs";
 import { Prose } from "@/components/prose";
+import { generateSeoPost } from "@/lib/posts.functions";
+import { analyzeSeo, readingTimeMin } from "@/lib/seo-score";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Quản trị — Hệ Thống Thần Cơ" }] }),
