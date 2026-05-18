@@ -10,6 +10,7 @@ import {
 
 import appCss from "../styles.css?url";
 import { SiteHeader, SiteFooter } from "@/components/site-chrome";
+import { SeoHead } from "@/components/seo-head";
 import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
@@ -120,6 +121,7 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <SeoHead />
       <div className="flex min-h-screen flex-col">
         <SiteHeader />
         <main className="flex-1">
