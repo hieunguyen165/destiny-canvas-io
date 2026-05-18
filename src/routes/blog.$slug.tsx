@@ -124,7 +124,7 @@ function BlogPostPage() {
   const { post } = Route.useLoaderData();
   const [related, setRelated] = useState<RelatedPost[]>([]);
   const readMin = readingTimeMin(post.content);
-  const tags = (post.keywords || "").split(",").map((s) => s.trim()).filter(Boolean);
+  const tags = (post.keywords || "").split(",").map((s: string) => s.trim()).filter(Boolean);
 
   useEffect(() => {
     supabase
