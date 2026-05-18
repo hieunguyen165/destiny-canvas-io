@@ -13,6 +13,7 @@ const NAV = [
   { to: "/hoang-dao", label: "Hoàng Đạo" },
   { to: "/lich-am", label: "Lịch Âm" },
   { to: "/ngay-tot", label: "Ngày Tốt" },
+  { to: "/blog", label: "Blog" },
 ] as const;
 
 export function SiteHeader() {
