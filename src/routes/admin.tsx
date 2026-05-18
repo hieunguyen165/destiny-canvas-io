@@ -741,6 +741,7 @@ type Post = {
   meta_description: string | null;
   keywords: string | null;
   status: string;
+  author_id: string | null;
   published_at: string | null;
   created_at: string;
   updated_at: string;
