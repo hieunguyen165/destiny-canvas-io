@@ -1,6 +1,6 @@
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Shield, KeyRound, Save, Users, History, Settings as SettingsIcon, Trash2, Eye, LayoutDashboard, Coins, Plus, UserCircle, FileText, Sparkles, Info, Wallet } from "lucide-react";
+import { Shield, KeyRound, Save, Users, History, Settings as SettingsIcon, Trash2, Eye, LayoutDashboard, Coins, Plus, UserCircle, FileText, Sparkles, Info, Wallet, Newspaper, Edit3, ExternalLink, ChevronLeft } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { setGeminiKey, useGeminiKey, useIsAdmin, useAppSettings, setAppSetting } from "@/lib/admin";
 import { checkIsAdmin } from "@/lib/admin.functions";
 import { COST_KEYS, DEFAULT_COSTS, fetchCosts, saveCosts } from "@/lib/costs";
+import { Prose } from "@/components/prose";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Quản trị — Hệ Thống Thần Cơ" }] }),
@@ -76,36 +77,98 @@ function AdminPage() {
     );
   }
 
+  return <AdminShell email={email} />;
+}
+
+const ADMIN_MENU = [
+  { key: "dashboard", label: "Tổng quan", icon: LayoutDashboard },
+  { key: "members", label: "Thành viên", icon: Users },
+  { key: "topups", label: "Nạp điểm", icon: Wallet },
+  { key: "pricing", label: "Giá điểm", icon: Coins },
+  { key: "history", label: "Lịch sử lá số", icon: History },
+  { key: "posts", label: "Bài viết SEO", icon: Newspaper },
+  { key: "info", label: "Thông tin", icon: Info },
+  { key: "settings", label: "Cài đặt", icon: SettingsIcon },
+] as const;
+
+type AdminKey = (typeof ADMIN_MENU)[number]["key"];
+
+function AdminShell({ email }: { email: string }) {
+  const [active, setActive] = useState<AdminKey>(() => {
+    if (typeof window === "undefined") return "dashboard";
+    const h = window.location.hash.replace("#", "") as AdminKey;
+    return ADMIN_MENU.some((m) => m.key === h) ? h : "dashboard";
+  });
+  useEffect(() => {
+    if (typeof window !== "undefined") window.history.replaceState(null, "", `#${active}`);
+  }, [active]);
+  const current = ADMIN_MENU.find((m) => m.key === active)!;
+
   return (
-    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
-      <div className="mb-6 flex items-center gap-3">
-        <div className="inline-flex h-10 w-10 items-center justify-center rounded-full gradient-primary text-primary-foreground shadow-elegant">
-          <Shield className="h-5 w-5" />
+    <div className="mx-auto flex max-w-[1400px] gap-6 px-4 py-8 sm:px-6">
+      {/* Sidebar */}
+      <aside className="sticky top-20 hidden h-[calc(100vh-6rem)] w-64 shrink-0 self-start overflow-y-auto rounded-2xl border border-border/60 bg-background/60 p-4 shadow-soft backdrop-blur lg:block">
+        <div className="mb-4 flex items-center gap-2.5 border-b border-border/50 pb-4">
+          <div className="inline-flex h-9 w-9 items-center justify-center rounded-lg gradient-primary text-primary-foreground shadow-elegant">
+            <Shield className="h-4 w-4" />
+          </div>
+          <div className="min-w-0">
+            <div className="font-display text-sm font-semibold">Khu Quản Trị</div>
+            <div className="truncate text-[10px] text-muted-foreground">{email}</div>
+          </div>
         </div>
-        <div>
-          <h1 className="font-display text-3xl font-bold">Khu Quản Trị</h1>
-          <p className="text-xs text-muted-foreground">Đang đăng nhập: {email}</p>
+        <nav className="space-y-1">
+          {ADMIN_MENU.map((m) => {
+            const Icon = m.icon;
+            const on = m.key === active;
+            return (
+              <button
+                key={m.key}
+                onClick={() => setActive(m.key)}
+                className={`flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                  on
+                    ? "bg-primary/12 text-primary shadow-soft"
+                    : "text-foreground/75 hover:bg-accent hover:text-foreground"
+                }`}
+              >
+                <Icon className="h-4 w-4" />
+                {m.label}
+              </button>
+            );
+          })}
+        </nav>
+        <div className="mt-6 border-t border-border/50 pt-4">
+          <Button asChild variant="outline" size="sm" className="w-full">
+            <Link to="/"><ChevronLeft className="mr-1.5 h-3.5 w-3.5" />Về trang chủ</Link>
+          </Button>
         </div>
+      </aside>
+
+      {/* Mobile select */}
+      <div className="lg:hidden fixed bottom-4 left-1/2 z-30 -translate-x-1/2">
+        <select
+          value={active}
+          onChange={(e) => setActive(e.target.value as AdminKey)}
+          className="rounded-full border border-border bg-background/95 px-4 py-2 text-sm font-semibold shadow-elegant backdrop-blur"
+        >
+          {ADMIN_MENU.map((m) => <option key={m.key} value={m.key}>{m.label}</option>)}
+        </select>
       </div>
 
-      <Tabs defaultValue="dashboard">
-        <TabsList className="mb-4 flex-wrap">
-          <TabsTrigger value="dashboard"><LayoutDashboard className="mr-1.5 h-4 w-4" />Tổng quan</TabsTrigger>
-          <TabsTrigger value="members"><Users className="mr-1.5 h-4 w-4" />Thành viên</TabsTrigger>
-          <TabsTrigger value="topups"><Wallet className="mr-1.5 h-4 w-4" />Nạp điểm</TabsTrigger>
-          <TabsTrigger value="pricing"><Coins className="mr-1.5 h-4 w-4" />Giá điểm</TabsTrigger>
-          <TabsTrigger value="history"><History className="mr-1.5 h-4 w-4" />Lịch sử lá số</TabsTrigger>
-          <TabsTrigger value="info"><Info className="mr-1.5 h-4 w-4" />Thông tin</TabsTrigger>
-          <TabsTrigger value="settings"><SettingsIcon className="mr-1.5 h-4 w-4" />Cài đặt</TabsTrigger>
-        </TabsList>
-        <TabsContent value="dashboard"><Dashboard /></TabsContent>
-        <TabsContent value="members"><MembersPanel /></TabsContent>
-        <TabsContent value="topups"><TopupsPanel /></TabsContent>
-        <TabsContent value="pricing"><PricingPanel /></TabsContent>
-        <TabsContent value="history"><HistoryPanel /></TabsContent>
-        <TabsContent value="info"><InfoPanel /></TabsContent>
-        <TabsContent value="settings"><SettingsPanel /></TabsContent>
-      </Tabs>
+      <main className="min-w-0 flex-1">
+        <div className="mb-5 flex items-center gap-3">
+          <current.icon className="h-6 w-6 text-primary" />
+          <h1 className="font-display text-2xl font-bold sm:text-3xl">{current.label}</h1>
+        </div>
+        {active === "dashboard" && <Dashboard />}
+        {active === "members" && <MembersPanel />}
+        {active === "topups" && <TopupsPanel />}
+        {active === "pricing" && <PricingPanel />}
+        {active === "history" && <HistoryPanel />}
+        {active === "posts" && <PostsPanel />}
+        {active === "info" && <InfoPanel />}
+        {active === "settings" && <SettingsPanel />}
+      </main>
     </div>
   );
 }
@@ -663,5 +726,299 @@ function TopupsPanel() {
         </table>
       </div>
     </Card>
+  );
+}
+
+/* ─── POSTS (CMS blog SEO) ─── */
+type Post = {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string | null;
+  content: string;
+  cover_url: string | null;
+  meta_title: string | null;
+  meta_description: string | null;
+  keywords: string | null;
+  status: string;
+  author_id: string | null;
+  published_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+function slugify(s: string): string {
+  return s
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/gi, "d")
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .trim()
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .slice(0, 90);
+}
+
+function PostsPanel() {
+  const [rows, setRows] = useState<Post[] | null>(null);
+  const [editing, setEditing] = useState<Post | "new" | null>(null);
+
+  const load = () => {
+    supabase
+      .from("posts")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .then(({ data, error }) => {
+        if (error) toast.error(error.message);
+        setRows((data as Post[]) ?? []);
+      });
+  };
+  useEffect(load, []);
+
+  const onDelete = async (id: string) => {
+    if (!confirm("Xoá bài viết này?")) return;
+    const { error } = await supabase.from("posts").delete().eq("id", id);
+    if (error) return toast.error(error.message);
+    toast.success("Đã xoá");
+    load();
+  };
+
+  if (editing) {
+    return (
+      <PostEditor
+        post={editing === "new" ? null : editing}
+        onBack={() => { setEditing(null); load(); }}
+      />
+    );
+  }
+
+  if (!rows) return <Card className="glass-card p-6">Đang tải…</Card>;
+  return (
+    <Card className="glass-card p-6 shadow-elegant">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <h3 className="font-display text-lg font-semibold">Tổng bài viết: {rows.length}</h3>
+        <div className="flex gap-2">
+          <Button asChild variant="outline" size="sm">
+            <Link to="/blog" target="_blank"><ExternalLink className="mr-1.5 h-3.5 w-3.5" />Xem blog</Link>
+          </Button>
+          <Button onClick={() => setEditing("new")} className="gradient-primary text-primary-foreground">
+            <Plus className="mr-1.5 h-4 w-4" />Bài viết mới
+          </Button>
+        </div>
+      </div>
+      <div className="overflow-auto rounded-md border border-border/60">
+        <table className="w-full text-sm">
+          <thead className="bg-accent/40 font-display"><tr>
+            <th className="px-3 py-2 text-left">Tiêu đề</th>
+            <th className="px-3 py-2 text-left">Slug</th>
+            <th className="px-3 py-2 text-left">Trạng thái</th>
+            <th className="px-3 py-2 text-left">Cập nhật</th>
+            <th className="px-3 py-2 text-right">Thao tác</th>
+          </tr></thead>
+          <tbody>
+            {rows.map((p) => (
+              <tr key={p.id} className="border-t border-border/60 odd:bg-background/40">
+                <td className="px-3 py-2 font-medium">{p.title}</td>
+                <td className="px-3 py-2 font-mono text-xs text-muted-foreground">/{p.slug}</td>
+                <td className="px-3 py-2">
+                  {p.status === "published"
+                    ? <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs text-emerald-700">Đã đăng</span>
+                    : <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-xs text-amber-700">Nháp</span>}
+                </td>
+                <td className="px-3 py-2 text-xs">{new Date(p.updated_at).toLocaleString("vi-VN")}</td>
+                <td className="px-3 py-2 text-right whitespace-nowrap">
+                  {p.status === "published" && (
+                    <Button asChild size="sm" variant="ghost">
+                      <Link to="/blog/$slug" params={{ slug: p.slug }} target="_blank"><ExternalLink className="h-3.5 w-3.5" /></Link>
+                    </Button>
+                  )}
+                  <Button size="sm" variant="ghost" onClick={() => setEditing(p)}><Edit3 className="h-3.5 w-3.5" /></Button>
+                  <Button size="sm" variant="ghost" onClick={() => onDelete(p.id)}><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>
+                </td>
+              </tr>
+            ))}
+            {rows.length === 0 && (
+              <tr><td colSpan={5} className="px-3 py-8 text-center text-muted-foreground">
+                Chưa có bài viết. Bấm <strong>Bài viết mới</strong> để bắt đầu viết bài SEO đầu tiên.
+              </td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </Card>
+  );
+}
+
+function PostEditor({ post, onBack }: { post: Post | null; onBack: () => void }) {
+  const isNew = !post;
+  const [title, setTitle] = useState(post?.title ?? "");
+  const [slug, setSlug] = useState(post?.slug ?? "");
+  const [slugTouched, setSlugTouched] = useState(!isNew);
+  const [excerpt, setExcerpt] = useState(post?.excerpt ?? "");
+  const [content, setContent] = useState(post?.content ?? "");
+  const [coverUrl, setCoverUrl] = useState(post?.cover_url ?? "");
+  const [metaTitle, setMetaTitle] = useState(post?.meta_title ?? "");
+  const [metaDesc, setMetaDesc] = useState(post?.meta_description ?? "");
+  const [keywords, setKeywords] = useState(post?.keywords ?? "");
+  const [status, setStatus] = useState(post?.status ?? "draft");
+  const [saving, setSaving] = useState(false);
+  const [preview, setPreview] = useState(false);
+
+  useEffect(() => {
+    if (!slugTouched) setSlug(slugify(title));
+  }, [title, slugTouched]);
+
+  const save = async () => {
+    if (!title.trim()) return toast.error("Nhập tiêu đề");
+    if (!slug.trim()) return toast.error("Slug không hợp lệ");
+    setSaving(true);
+    try {
+      const { data: u } = await supabase.auth.getUser();
+      const payload = {
+        title: title.trim(),
+        slug: slug.trim(),
+        excerpt: excerpt.trim() || null,
+        content,
+        cover_url: coverUrl.trim() || null,
+        meta_title: metaTitle.trim() || null,
+        meta_description: metaDesc.trim() || null,
+        keywords: keywords.trim() || null,
+        status,
+        published_at: status === "published" ? (post?.published_at ?? new Date().toISOString()) : null,
+        author_id: post?.author_id ?? u.user?.id ?? null,
+      };
+      if (isNew) {
+        const { error } = await supabase.from("posts").insert(payload);
+        if (error) throw error;
+        toast.success("Đã tạo bài viết");
+      } else {
+        const { error } = await supabase.from("posts").update(payload).eq("id", post!.id);
+        if (error) throw error;
+        toast.success("Đã lưu bài viết");
+      }
+      onBack();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Lỗi lưu");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between gap-3">
+        <Button variant="ghost" size="sm" onClick={onBack}>
+          <ChevronLeft className="mr-1.5 h-4 w-4" />Quay lại danh sách
+        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={() => setPreview((p) => !p)}>
+            <Eye className="mr-1.5 h-3.5 w-3.5" />{preview ? "Sửa" : "Xem trước"}
+          </Button>
+          <Button onClick={save} disabled={saving} className="gradient-primary text-primary-foreground">
+            <Save className="mr-1.5 h-4 w-4" />{saving ? "Đang lưu…" : "Lưu bài viết"}
+          </Button>
+        </div>
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
+        {/* Main */}
+        <Card className="glass-card p-5 shadow-elegant">
+          <Label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">Tiêu đề</Label>
+          <Input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Ví dụ: Cách xem lá số tử vi 2026 chi tiết nhất"
+            className="font-display text-lg"
+          />
+          <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
+            <span className="text-muted-foreground">URL:</span>
+            <span className="font-mono text-muted-foreground">/blog/</span>
+            <Input
+              value={slug}
+              onChange={(e) => { setSlug(slugify(e.target.value)); setSlugTouched(true); }}
+              placeholder="duong-dan-bai-viet"
+              className="h-7 max-w-xs font-mono text-xs"
+            />
+          </div>
+          <Label className="mb-1.5 mt-5 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">Tóm tắt (hiển thị ở danh sách & SEO)</Label>
+          <Textarea
+            rows={2}
+            value={excerpt}
+            onChange={(e) => setExcerpt(e.target.value)}
+            placeholder="Đoạn mô tả ngắn 120-160 ký tự…"
+          />
+
+          <Label className="mb-1.5 mt-5 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Nội dung (Markdown — hỗ trợ ## tiêu đề, **đậm**, [link](url), - danh sách, bảng)
+          </Label>
+          {preview ? (
+            <div className="rounded-md border border-border/60 bg-background/50 p-4 min-h-[300px]">
+              {content.trim() ? <Prose content={content} /> : <p className="text-sm text-muted-foreground">(Chưa có nội dung)</p>}
+            </div>
+          ) : (
+            <Textarea
+              rows={20}
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder={`## Mở đầu\n\nNội dung bài viết tại đây…\n\n## Phần 1\n\n- Ý 1\n- Ý 2`}
+              className="font-mono text-sm"
+            />
+          )}
+        </Card>
+
+        {/* Sidebar */}
+        <div className="space-y-4">
+          <Card className="glass-card p-5 shadow-elegant">
+            <h4 className="mb-3 font-display text-sm font-semibold">Xuất bản</h4>
+            <Label className="mb-1.5 block text-xs">Trạng thái</Label>
+            <select
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            >
+              <option value="draft">Nháp (chỉ admin xem)</option>
+              <option value="published">Đã đăng (công khai)</option>
+            </select>
+            {post?.published_at && (
+              <p className="mt-2 text-xs text-muted-foreground">
+                Đăng lúc: {new Date(post.published_at).toLocaleString("vi-VN")}
+              </p>
+            )}
+          </Card>
+
+          <Card className="glass-card p-5 shadow-elegant">
+            <h4 className="mb-3 font-display text-sm font-semibold">Ảnh bìa</h4>
+            <Label className="mb-1.5 block text-xs">URL ảnh (dùng cho thumbnail & OG image)</Label>
+            <Input value={coverUrl} onChange={(e) => setCoverUrl(e.target.value)} placeholder="https://…" />
+            {coverUrl && (
+              <img src={coverUrl} alt="" className="mt-2 aspect-video w-full rounded-md object-cover" loading="lazy" />
+            )}
+          </Card>
+
+          <Card className="glass-card p-5 shadow-elegant">
+            <h4 className="mb-3 flex items-center gap-1.5 font-display text-sm font-semibold">
+              <Sparkles className="h-4 w-4 text-primary" />Tối ưu SEO
+            </h4>
+            <Label className="mb-1.5 block text-xs">Meta title (mặc định lấy tiêu đề)</Label>
+            <Input value={metaTitle} onChange={(e) => setMetaTitle(e.target.value)} placeholder="≤ 60 ký tự" maxLength={70} />
+            <p className="mt-1 text-[10px] text-muted-foreground">{(metaTitle || title).length}/60 ký tự</p>
+
+            <Label className="mb-1.5 mt-3 block text-xs">Meta description</Label>
+            <Textarea
+              rows={3}
+              value={metaDesc}
+              onChange={(e) => setMetaDesc(e.target.value)}
+              placeholder="Mô tả ngắn xuất hiện trên Google. 120-160 ký tự là tối ưu."
+              maxLength={200}
+            />
+            <p className="mt-1 text-[10px] text-muted-foreground">{(metaDesc || excerpt || "").length}/160 ký tự</p>
+
+            <Label className="mb-1.5 mt-3 block text-xs">Từ khoá (phân tách bằng dấu phẩy)</Label>
+            <Input value={keywords} onChange={(e) => setKeywords(e.target.value)} placeholder="tử vi, vận mệnh, 2026" />
+          </Card>
+        </div>
+      </div>
+    </div>
   );
 }
