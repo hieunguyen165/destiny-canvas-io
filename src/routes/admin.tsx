@@ -1,6 +1,6 @@
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { Shield, KeyRound, Save, Users, History, Settings as SettingsIcon, Trash2, Eye, LayoutDashboard, Coins, Plus, UserCircle, FileText, Sparkles, Info, Wallet, Newspaper, Edit3, ExternalLink, ChevronLeft } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Shield, KeyRound, Save, Users, History, Settings as SettingsIcon, Trash2, Eye, LayoutDashboard, Coins, Plus, UserCircle, FileText, Sparkles, Info, Wallet, Newspaper, Edit3, ExternalLink, ChevronLeft, Image as ImageIcon, Bold, Italic, Heading2, List, Link2, Wand2, Loader2, Gauge } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -13,6 +13,8 @@ import { setGeminiKey, useGeminiKey, useIsAdmin, useAppSettings, setAppSetting }
 import { checkIsAdmin } from "@/lib/admin.functions";
 import { COST_KEYS, DEFAULT_COSTS, fetchCosts, saveCosts } from "@/lib/costs";
 import { Prose } from "@/components/prose";
+import { generateSeoPost } from "@/lib/posts.functions";
+import { analyzeSeo, readingTimeMin } from "@/lib/seo-score";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Quản trị — Hệ Thống Thần Cơ" }] }),
@@ -865,9 +867,96 @@ function PostEditor({ post, onBack }: { post: Post | null; onBack: () => void })
   const [saving, setSaving] = useState(false);
   const [preview, setPreview] = useState(false);
 
+  // AI assistant
+  const [aiTopic, setAiTopic] = useState("");
+  const [aiKw, setAiKw] = useState("");
+  const [aiTone, setAiTone] = useState<"chuyen-sau" | "thuc-dung" | "huyen-bi">("chuyen-sau");
+  const [aiLen, setAiLen] = useState<"ngan" | "trung" | "dai">("trung");
+  const [aiBusy, setAiBusy] = useState(false);
+
+  // Image upload
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const contentRef = useRef<HTMLTextAreaElement>(null);
+  const coverInputRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     if (!slugTouched) setSlug(slugify(title));
   }, [title, slugTouched]);
+
+  const seo = analyzeSeo({ title, slug, excerpt, metaTitle, metaDescription: metaDesc, keywords, content, coverUrl });
+  const readMin = readingTimeMin(content);
+
+  const insertAtCursor = (snippet: string) => {
+    const ta = contentRef.current;
+    if (!ta) { setContent((c) => c + snippet); return; }
+    const start = ta.selectionStart ?? content.length;
+    const end = ta.selectionEnd ?? content.length;
+    const next = content.slice(0, start) + snippet + content.slice(end);
+    setContent(next);
+    requestAnimationFrame(() => {
+      ta.focus();
+      const pos = start + snippet.length;
+      ta.setSelectionRange(pos, pos);
+    });
+  };
+
+  const wrapSelection = (left: string, right = left) => {
+    const ta = contentRef.current;
+    if (!ta) return insertAtCursor(left + right);
+    const start = ta.selectionStart ?? 0;
+    const end = ta.selectionEnd ?? 0;
+    const sel = content.slice(start, end) || "văn bản";
+    const next = content.slice(0, start) + left + sel + right + content.slice(end);
+    setContent(next);
+    requestAnimationFrame(() => {
+      ta.focus();
+      ta.setSelectionRange(start + left.length, start + left.length + sel.length);
+    });
+  };
+
+  const uploadImage = async (file: File, target: "content" | "cover") => {
+    if (!file.type.startsWith("image/")) return toast.error("Chỉ chấp nhận file ảnh");
+    if (file.size > 5 * 1024 * 1024) return toast.error("Ảnh tối đa 5MB");
+    setUploading(true);
+    try {
+      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+      const path = `posts/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { error } = await supabase.storage.from("blog-images").upload(path, file, { cacheControl: "31536000", upsert: false });
+      if (error) throw error;
+      const { data: pub } = supabase.storage.from("blog-images").getPublicUrl(path);
+      const url = pub.publicUrl;
+      if (target === "cover") setCoverUrl(url);
+      else insertAtCursor(`\n\n![${file.name.replace(/\.[^.]+$/, "")}](${url})\n\n`);
+      toast.success("Đã tải ảnh lên");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Upload thất bại");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const runAi = async () => {
+    if (!aiTopic.trim()) return toast.error("Nhập chủ đề trước");
+    setAiBusy(true);
+    try {
+      const r = await generateSeoPost({ data: { topic: aiTopic.trim(), primaryKeyword: aiKw.trim(), tone: aiTone, length: aiLen } });
+      if (!r.ok) return toast.error(r.error);
+      const p = r.post;
+      setTitle(p.title);
+      if (p.slug) { setSlug(slugify(p.slug)); setSlugTouched(true); }
+      setExcerpt(p.excerpt);
+      setMetaTitle(p.meta_title);
+      setMetaDesc(p.meta_description);
+      setKeywords(p.keywords);
+      setContent(p.content);
+      toast.success("AI đã tạo bản nháp — hãy chỉnh sửa rồi lưu");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "AI lỗi");
+    } finally {
+      setAiBusy(false);
+    }
+  };
 
   const save = async () => {
     if (!title.trim()) return toast.error("Nhập tiêu đề");
@@ -905,13 +994,15 @@ function PostEditor({ post, onBack }: { post: Post | null; onBack: () => void })
     }
   };
 
+  const scoreColor = seo.score >= 80 ? "text-emerald-600" : seo.score >= 60 ? "text-amber-600" : "text-destructive";
+
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <Button variant="ghost" size="sm" onClick={onBack}>
           <ChevronLeft className="mr-1.5 h-4 w-4" />Quay lại danh sách
         </Button>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button variant="outline" size="sm" onClick={() => setPreview((p) => !p)}>
             <Eye className="mr-1.5 h-3.5 w-3.5" />{preview ? "Sửa" : "Xem trước"}
           </Button>
@@ -920,6 +1011,34 @@ function PostEditor({ post, onBack }: { post: Post | null; onBack: () => void })
           </Button>
         </div>
       </div>
+
+      {/* AI generator */}
+      <Card className="glass-card p-5 shadow-elegant border-primary/30">
+        <h4 className="mb-2 flex items-center gap-1.5 font-display text-sm font-semibold">
+          <Wand2 className="h-4 w-4 text-primary" />Trợ lý AI viết bài SEO
+        </h4>
+        <p className="mb-3 text-xs text-muted-foreground">
+          Nhập chủ đề, AI sẽ soạn nháp chuẩn SEO (tiêu đề, meta, từ khoá, dàn ý H2/H3, FAQ). Bạn vẫn nên chỉnh sửa lại cho đúng giọng văn của mình.
+        </p>
+        <div className="grid gap-2 md:grid-cols-[1fr_1fr_140px_140px_auto]">
+          <Input value={aiTopic} onChange={(e) => setAiTopic(e.target.value)} placeholder="Chủ đề: VD: Cách xem tử vi năm 2026 cho người tuổi Dần" />
+          <Input value={aiKw} onChange={(e) => setAiKw(e.target.value)} placeholder="Từ khoá chính (tuỳ chọn)" />
+          <select value={aiTone} onChange={(e) => setAiTone(e.target.value as any)} className="rounded-md border border-input bg-background px-2 py-2 text-sm">
+            <option value="chuyen-sau">Văn phong chuyên sâu</option>
+            <option value="thuc-dung">Văn phong thực dụng</option>
+            <option value="huyen-bi">Văn phong huyền bí</option>
+          </select>
+          <select value={aiLen} onChange={(e) => setAiLen(e.target.value as any)} className="rounded-md border border-input bg-background px-2 py-2 text-sm">
+            <option value="ngan">Ngắn (~800 từ)</option>
+            <option value="trung">Trung (~1400 từ)</option>
+            <option value="dai">Dài (~2000 từ)</option>
+          </select>
+          <Button onClick={runAi} disabled={aiBusy} className="gradient-primary text-primary-foreground">
+            {aiBusy ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <Sparkles className="mr-1.5 h-4 w-4" />}
+            {aiBusy ? "Đang viết…" : "AI viết bài"}
+          </Button>
+        </div>
+      </Card>
 
       <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
         {/* Main */}
@@ -931,6 +1050,8 @@ function PostEditor({ post, onBack }: { post: Post | null; onBack: () => void })
             placeholder="Ví dụ: Cách xem lá số tử vi 2026 chi tiết nhất"
             className="font-display text-lg"
           />
+          <p className="mt-1 text-[10px] text-muted-foreground">{title.length}/60 ký tự (tối ưu 30-60)</p>
+
           <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
             <span className="text-muted-foreground">URL:</span>
             <span className="font-mono text-muted-foreground">/blog/</span>
@@ -949,26 +1070,90 @@ function PostEditor({ post, onBack }: { post: Post | null; onBack: () => void })
             placeholder="Đoạn mô tả ngắn 120-160 ký tự…"
           />
 
-          <Label className="mb-1.5 mt-5 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            Nội dung (Markdown — hỗ trợ ## tiêu đề, **đậm**, [link](url), - danh sách, bảng)
-          </Label>
+          <div className="mb-1.5 mt-5 flex flex-wrap items-center justify-between gap-2">
+            <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Nội dung (Markdown)
+            </Label>
+            <span className="text-[11px] text-muted-foreground">~ {readMin} phút đọc</span>
+          </div>
+
+          {/* Markdown toolbar */}
+          {!preview && (
+            <div className="mb-2 flex flex-wrap gap-1 rounded-md border border-border/60 bg-background/60 p-1">
+              <Button type="button" size="sm" variant="ghost" onClick={() => wrapSelection("**")} title="Đậm"><Bold className="h-3.5 w-3.5" /></Button>
+              <Button type="button" size="sm" variant="ghost" onClick={() => wrapSelection("*")} title="Nghiêng"><Italic className="h-3.5 w-3.5" /></Button>
+              <Button type="button" size="sm" variant="ghost" onClick={() => insertAtCursor("\n\n## Tiêu đề phần\n\n")} title="Tiêu đề H2"><Heading2 className="h-3.5 w-3.5" /></Button>
+              <Button type="button" size="sm" variant="ghost" onClick={() => insertAtCursor("\n- Mục 1\n- Mục 2\n- Mục 3\n")} title="Danh sách"><List className="h-3.5 w-3.5" /></Button>
+              <Button type="button" size="sm" variant="ghost" onClick={() => {
+                const url = prompt("Nhập URL liên kết:");
+                if (url) wrapSelection("[", `](${url})`);
+              }} title="Liên kết"><Link2 className="h-3.5 w-3.5" /></Button>
+              <Button type="button" size="sm" variant="ghost" disabled={uploading} onClick={() => fileInputRef.current?.click()} title="Tải ảnh lên">
+                {uploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ImageIcon className="h-3.5 w-3.5" />}
+                <span className="ml-1 text-xs">Ảnh</span>
+              </Button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                hidden
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) uploadImage(f, "content");
+                  e.target.value = "";
+                }}
+              />
+            </div>
+          )}
+
           {preview ? (
             <div className="rounded-md border border-border/60 bg-background/50 p-4 min-h-[300px]">
               {content.trim() ? <Prose content={content} /> : <p className="text-sm text-muted-foreground">(Chưa có nội dung)</p>}
             </div>
           ) : (
             <Textarea
-              rows={20}
+              ref={contentRef}
+              rows={22}
               value={content}
               onChange={(e) => setContent(e.target.value)}
+              onPaste={async (e) => {
+                const item = Array.from(e.clipboardData.items).find((i) => i.type.startsWith("image/"));
+                if (item) {
+                  e.preventDefault();
+                  const f = item.getAsFile();
+                  if (f) await uploadImage(f, "content");
+                }
+              }}
               placeholder={`## Mở đầu\n\nNội dung bài viết tại đây…\n\n## Phần 1\n\n- Ý 1\n- Ý 2`}
               className="font-mono text-sm"
             />
           )}
+          <p className="mt-1 text-[10px] text-muted-foreground">Mẹo: paste ảnh trực tiếp từ clipboard cũng được tự động tải lên.</p>
         </Card>
 
         {/* Sidebar */}
         <div className="space-y-4">
+          {/* SEO score */}
+          <Card className="glass-card p-5 shadow-elegant">
+            <h4 className="mb-3 flex items-center justify-between font-display text-sm font-semibold">
+              <span className="flex items-center gap-1.5"><Gauge className="h-4 w-4 text-primary" />Điểm SEO</span>
+              <span className={`text-2xl font-bold ${scoreColor}`}>{seo.score}</span>
+            </h4>
+            <div className="mb-3 h-2 overflow-hidden rounded-full bg-muted">
+              <div className={`h-full transition-all ${seo.score >= 80 ? "bg-emerald-500" : seo.score >= 60 ? "bg-amber-500" : "bg-destructive"}`} style={{ width: `${seo.score}%` }} />
+            </div>
+            <ul className="space-y-1.5 text-xs">
+              {seo.checks.map((c) => (
+                <li key={c.id} className="flex items-start gap-2">
+                  <span className={`mt-0.5 inline-block h-2 w-2 shrink-0 rounded-full ${c.ok ? "bg-emerald-500" : "bg-muted-foreground/40"}`} />
+                  <span className={c.ok ? "text-foreground/80" : "text-muted-foreground"}>
+                    {c.label}{c.hint && <span className="ml-1 text-[10px] text-muted-foreground">· {c.hint}</span>}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </Card>
+
           <Card className="glass-card p-5 shadow-elegant">
             <h4 className="mb-3 font-display text-sm font-semibold">Xuất bản</h4>
             <Label className="mb-1.5 block text-xs">Trạng thái</Label>
@@ -991,6 +1176,24 @@ function PostEditor({ post, onBack }: { post: Post | null; onBack: () => void })
             <h4 className="mb-3 font-display text-sm font-semibold">Ảnh bìa</h4>
             <Label className="mb-1.5 block text-xs">URL ảnh (dùng cho thumbnail & OG image)</Label>
             <Input value={coverUrl} onChange={(e) => setCoverUrl(e.target.value)} placeholder="https://…" />
+            <div className="mt-2 flex gap-2">
+              <Button type="button" size="sm" variant="outline" disabled={uploading} onClick={() => coverInputRef.current?.click()}>
+                {uploading ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <ImageIcon className="mr-1.5 h-3.5 w-3.5" />}
+                Tải ảnh bìa
+              </Button>
+              {coverUrl && <Button type="button" size="sm" variant="ghost" onClick={() => setCoverUrl("")}>Xoá</Button>}
+            </div>
+            <input
+              ref={coverInputRef}
+              type="file"
+              accept="image/*"
+              hidden
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) uploadImage(f, "cover");
+                e.target.value = "";
+              }}
+            />
             {coverUrl && (
               <img src={coverUrl} alt="" className="mt-2 aspect-video w-full rounded-md object-cover" loading="lazy" />
             )}
@@ -1022,3 +1225,4 @@ function PostEditor({ post, onBack }: { post: Post | null; onBack: () => void })
     </div>
   );
 }
+
