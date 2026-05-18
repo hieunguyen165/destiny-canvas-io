@@ -193,7 +193,7 @@ function BlogPostPage() {
       {tags.length > 0 && (
         <div className="mt-10 flex flex-wrap items-center gap-2 border-t border-border/60 pt-6">
           <Tag className="h-4 w-4 text-muted-foreground" />
-          {tags.map((t) => (
+          {tags.map((t: string) => (
             <span key={t} className="rounded-full border border-border/60 bg-background/60 px-3 py-1 text-xs text-foreground/75">#{t}</span>
           ))}
         </div>
