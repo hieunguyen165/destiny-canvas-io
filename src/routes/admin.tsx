@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { setGeminiKey, useGeminiKey, useIsAdmin, useAppSettings, setAppSetting } from "@/lib/admin";
 import { checkIsAdmin } from "@/lib/admin.functions";
 import { COST_KEYS, DEFAULT_COSTS, fetchCosts, saveCosts } from "@/lib/costs";
+import { Prose } from "@/components/prose";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Quản trị — Hệ Thống Thần Cơ" }] }),
